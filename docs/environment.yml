@@ -1,0 +1,13 @@
+channels:
+- conda-forge
+dependencies:
+- ipykernel
+- myst-parser
+- nbsphinx
+- sphinx-gallery
+- sphinx-rtd-theme
+- versioneer
+- hatchling =1.27.0
+- hatch-vcs =0.5.0
+- numpy =2.4.2
+- python >=3.11,<3.14

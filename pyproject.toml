@@ -1,0 +1,91 @@
+[build-system]
+requires = [
+    "hatchling==1.27.0",
+    "hatch-vcs==0.5.0",
+    "numpy",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyiron_module_template"
+description = "pyiron_module_template - Your pyiron-like module."
+readme = "docs/README.md"
+keywords = [ "pyiron",]
+requires-python = ">=3.11, <3.14"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "numpy==2.4.2"
+]
+dynamic = [ "version",]
+authors = [
+    { name = "Lorem Ipsum", email = "lorem@ipsum.com" },
+]
+
+[project.license]
+file = "LICENSE"
+
+[project.urls]
+Homepage = "https://pyiron.org/"
+Documentation = "https://pyiron_module_template.readthedocs.io"
+Repository = "https://github.com/pyiron/pyiron_module_template"
+
+[tool.hatch.build]
+include = [
+    "pyiron_module_template"
+]
+
+[tool.hatch.build.hooks.vcs]
+version-file = "pyiron_module_template/_version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "pyiron_module_template"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "pyiron_module_template"
+]
+
+[tool.hatch.version]
+source = "vcs"
+path = "pyiron_module_template/_version.py"
+
+[tool.ruff]
+exclude = ["docs", "notebooks"]
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+ignore = ["E501"] #ignore line-length violations
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Ignore unused imports in init files -- we specify APIs this way
+
+[tool.black]
+extend-exclude = '''
+(
+  ^/docs
+)
+'''
