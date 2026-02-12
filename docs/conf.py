@@ -17,7 +17,7 @@ import shutil
 import subprocess
 from sphinx.ext.apidoc import main
 
-import pyiron_module_template
+import courier
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -63,7 +63,7 @@ source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 master_doc = "index"
 
 # General information about the project.
-project = "pyiron_module_template"
+project = "courier"
 copyright = (
     "2024, Max-Planck-Institut für Nachhaltige Materialien GmbH - Computational Materials Design (CM) Department "
     "All rights reserved"
@@ -74,7 +74,7 @@ copyright = (
 # built documents.
 #
 # The short X.Y version.
-version_full = pyiron_module_template.__version__
+version_full = courier.__version__
 version = '.'.join(version_full.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = version_full
@@ -247,8 +247,8 @@ latex_elements = {
 latex_documents = [
     (
         "index",
-        "pyiron_module_template.tex",
-        "pyiron_module_template Documentation",
+        "courier.tex",
+        "courier Documentation",
         "Max-Planck-Institut für Nachhaltige Materialien GmbH - Computational Materials Design (CM) Department",
         "manual",
     ),
@@ -282,8 +282,8 @@ latex_documents = [
 man_pages = [
     (
         "index",
-        "pyiron_module_template",
-        "pyiron_module_template Documentation",
+        "courier",
+        "courier Documentation",
         [
             "Max-Planck-Institut für Nachhaltige Materialien GmbH - Computational Materials Design (CM) Department"
         ],
@@ -303,10 +303,10 @@ man_pages = [
 texinfo_documents = [
     (
         "index",
-        "pyiron_module_template",
-        "pyiron_module_template Documentation",
+        "courier",
+        "courier Documentation",
         "Max-Planck-Institut für Nachhaltige Materialien GmbH - Computational Materials Design (CM) Department",
-        "pyiron_module_template",
+        "courier",
         "One line description of project.",
         "Miscellaneous",
     ),
@@ -324,7 +324,7 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
 
-main(["-e", "-o", "apidoc", "../pyiron_module_template", "--force"])
+main(["-e", "-o", "apidoc", "../courier", "--force"])
 
 curdir = os.path.dirname(os.path.abspath(__file__))
 if os.path.exists(os.path.join(curdir, "source/notebooks")):
