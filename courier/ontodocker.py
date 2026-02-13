@@ -175,10 +175,7 @@ def extract_dataset_names(sparql_endpoints: list[str]) -> list[str]:
             len(segments) >= 5
             and segments[:3] == ["api", "v1", "jena"]
             and segments[-1] == "sparql"
-        ):
-            datasetnames.append(segments[3])
-            # fallback: expected: ["api","v1","jena","<dataset>"]
-        elif len(segments) >= 4 and segments[:3] == ["api", "v1", "jena"]:
+        ) or len(segments) >= 4 and segments[:3] == ["api", "v1", "jena"]:
             datasetnames.append(segments[3])
         else:
             raise ValueError(f"Unexpected SPARQL endpoint format: {endpoint}")
