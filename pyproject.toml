@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "courier"
-description = "courier - Your pyiron-like module."
+description = "courier - Interfaces for publishing workflow recipies, instances and related assets"
 readme = "docs/README.md"
 keywords = [ "pyiron",]
 requires-python = ">=3.11, <3.14"
@@ -23,7 +23,10 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "numpy==2.4.2"
+    "numpy==2.4.2",
+    "pandas==3.0.0",
+    "requests==2.32.5",
+    "SPARQLWrapper==2.0.0",
 ]
 dynamic = [ "version",]
 authors = [
