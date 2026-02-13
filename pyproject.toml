@@ -27,7 +27,7 @@ dependencies = [
 ]
 dynamic = [ "version",]
 authors = [
-    { name = "Lorem Ipsum", email = "lorem@ipsum.com" },
+    { name = "Marian Bruns", email = "m.bruns@mpi-susmat.de" },
 ]
 
 [project.license]
