@@ -1,12 +1,13 @@
 import ast
 import os
-import pandas as pd
-import requests
 import warnings
 from collections.abc import Mapping, Sequence
 from typing import Any
-from SPARQLWrapper import SPARQLWrapper
 from urllib.parse import urlsplit
+
+import pandas as pd
+import requests
+from SPARQLWrapper import SPARQLWrapper
 
 
 def rectify_endpoints(result: str) -> str:
