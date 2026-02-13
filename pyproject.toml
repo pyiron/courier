@@ -7,8 +7,8 @@ requires = [
 build-backend = "hatchling.build"
 
 [project]
-name = "pyiron_module_template"
-description = "pyiron_module_template - Your pyiron-like module."
+name = "courier"
+description = "courier - Your pyiron-like module."
 readme = "docs/README.md"
 keywords = [ "pyiron",]
 requires-python = ">=3.11, <3.14"
@@ -35,30 +35,30 @@ file = "LICENSE"
 
 [project.urls]
 Homepage = "https://pyiron.org/"
-Documentation = "https://pyiron_module_template.readthedocs.io"
-Repository = "https://github.com/pyiron/pyiron_module_template"
+Documentation = "https://courier.readthedocs.io"
+Repository = "https://github.com/pyiron/courier"
 
 [tool.hatch.build]
 include = [
-    "pyiron_module_template"
+    "courier"
 ]
 
 [tool.hatch.build.hooks.vcs]
-version-file = "pyiron_module_template/_version.py"
+version-file = "courier/_version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "pyiron_module_template"
+    "courier"
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = [
-    "pyiron_module_template"
+    "courier"
 ]
 
 [tool.hatch.version]
 source = "vcs"
-path = "pyiron_module_template/_version.py"
+path = "courier/_version.py"
 
 [tool.ruff]
 exclude = ["docs", "notebooks"]
