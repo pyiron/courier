@@ -250,7 +250,7 @@ def download_dataset_as_turtle_file(
         )
 
     if not dataset_name or not dataset_name.strip():
-        raise ValueError("datset_name must be non-empty")
+        raise ValueError("dataset_name must be non-empty")
 
     url = f"{scheme}://{address}/api/v1/jena/{dataset_name}"
 
@@ -260,7 +260,7 @@ def download_dataset_as_turtle_file(
         resp = requests.get(url, headers=headers, timeout=timeout, verify=verify)
         resp.raise_for_status()
     except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Failed to fetch turtlefile from {url}: {e}") from e
+        raise RuntimeError(f"Failed to fetch turtle file from {url}: {e}") from e
 
     try:
         result = resp.content.decode()  # server typically returns text/JSON-ish content
@@ -273,7 +273,8 @@ def download_dataset_as_turtle_file(
         cwd = os.getcwd()
         turtlefile_name = f"{cwd}/{dataset_name}.ttl"
         warnings.warn(
-            f"No path/filename to save the turltfile to was explicitly provided. It is saved under {turtlefile_name}",
+            "No path/filename to save the turtle file to was explicitly"
+            f" provided. It is saved under {turtlefile_name}",
             UserWarning,
             stacklevel=2,
         )
@@ -341,7 +342,7 @@ def create_empty_dataset(
         )
 
     if not dataset_name or not dataset_name.strip():
-        raise ValueError("datset_name must be non-empty")
+        raise ValueError("dataset_name must be non-empty")
 
     url = f"{scheme}://{address}/api/v1/jena/{dataset_name}"
 
