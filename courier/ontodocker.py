@@ -439,14 +439,15 @@ def upload_turtlefile(
     headers = {"Authorization": f"Bearer {token}"} if token else {}
 
     try:
-        resp = requests.post(
-            url,
-            headers=headers,
-            files={"file": open(turtlefile, "rb")},
-            timeout=timeout,
-            verify=verify,
-        )
-        resp.raise_for_status()
+        with open(turtlefile, "rb") as file:
+            resp = requests.post(
+                url,
+                headers=headers,
+                files={"file": file},
+                timeout=timeout,
+                verify=verify,
+            )
+            resp.raise_for_status()
     except requests.exceptions.RequestException as e:
         raise RuntimeError(
             f"Failed to upload turtlefile '{turtlefile}' to dataset '{dataset_name}' at {url}: {e}"
@@ -579,7 +580,7 @@ def make_dataframe(
     liste = []
     for r in result["results"]["bindings"]:
         row = []
-        for k in r.keys():
+        for k in r:
             row.append(r[k]["value"])
             liste.append(row)
             df = pd.DataFrame(liste, columns=columns)
