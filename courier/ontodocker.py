@@ -1,11 +1,13 @@
-import requests
 import ast
-import warnings
 import os
 import pandas as pd
-from typing import Any, Mapping, Sequence
+import requests
+import warnings
+from collections.abc import Mapping, Sequence
+from typing import Any
 from SPARQLWrapper import SPARQLWrapper
 from urllib.parse import urlsplit
+
 
 def rectify_endpoints(result: str) -> str:
     """
@@ -32,14 +34,15 @@ def rectify_endpoints(result: str) -> str:
     result = result.replace(":443/api/jena", "/api/v1/jena")
     return result
 
+
 def get_all_dataset_sparql_endpoints(
-        address: str,
-        token: str | None = None,
-        *,
-        timeout: tuple[int, int] = (5, 5),
-        verify: bool = True,
-        scheme: str = "https",
-        rectify: bool = True,
+    address: str,
+    token: str | None = None,
+    *,
+    timeout: tuple[int, int] = (5, 5),
+    verify: bool = True,
+    scheme: str = "https",
+    rectify: bool = True,
 ) -> list[str]:
     """
     Fetch all SPARQL endpoint URLs from an Ontodocker/Fuseki instance.
@@ -81,9 +84,13 @@ def get_all_dataset_sparql_endpoints(
         If the response cannot be decoded or cannot be converted into ``list[str]``.
     """
     if not address or not address.strip():
-        raise ValueError("address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'")
+        raise ValueError(
+            "address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'"
+        )
     if "://" in address:
-        raise ValueError("address must not include a scheme (remove 'http://...' or 'https://...')")
+        raise ValueError(
+            "address must not include a scheme (remove 'http://...' or 'https://...')"
+        )
 
     url = f"{scheme}://{address}/api/v1/endpoints"
 
@@ -100,26 +107,35 @@ def get_all_dataset_sparql_endpoints(
     try:
         result = resp.content.decode()  # server typically returns text/JSON-ish content
     except UnicodeDecodeError as e:
-        raise RuntimeError(f"Failed to decode response body as text from {url}: {e}") from e
+        raise RuntimeError(
+            f"Failed to decode response body as text from {url}: {e}"
+        ) from e
 
     # Fix older Ontodocker responses
     if rectify:
         try:
             result = rectify_endpoints(result)
         except Exception as e:
-            raise RuntimeError(f"Failed to rectify endpoints response into list[str]: {e}") from e
+            raise RuntimeError(
+                f"Failed to rectify endpoints response into list[str]: {e}"
+            ) from e
 
     # convert str -> list[str]
     try:
-        result =  ast.literal_eval(result)
+        result = ast.literal_eval(result)
     except (SyntaxError, ValueError, MemoryError) as e:
-        raise RuntimeError(f"Failed to convert response to a list of strings: {e}") from e
+        raise RuntimeError(
+            f"Failed to convert response to a list of strings: {e}"
+        ) from e
 
     # ensure the conversion succeeded
     if not isinstance(result, list) or not all(isinstance(x, str) for x in result):
-        raise TypeError(f"ast succeded, but did not convert to a list[str], but to something else. Basetype returned by ast is {type(result)}")
-    
+        raise TypeError(
+            f"ast succeded, but did not convert to a list[str], but to something else. Basetype returned by ast is {type(result)}"
+        )
+
     return result
+
 
 def extract_dataset_names(sparql_endpoints: list[str]) -> list[str]:
     """
@@ -150,11 +166,15 @@ def extract_dataset_names(sparql_endpoints: list[str]) -> list[str]:
 
     for endpoint in sparql_endpoints:
         parts = urlsplit(endpoint)
-        path = parts.path.rstrip("/")              # normalize trailing slash
+        path = parts.path.rstrip("/")  # normalize trailing slash
         segments = [s for s in path.split("/") if s]
 
         # expected: ["api","v1","jena", "<dataset>", "sparql"]
-        if len(segments) >= 5 and segments[:3] == ["api", "v1", "jena"] and segments[-1] == "sparql":
+        if (
+            len(segments) >= 5
+            and segments[:3] == ["api", "v1", "jena"]
+            and segments[-1] == "sparql"
+        ):
             datasettonames.append(segments[3])
             # fallback: expected: ["api","v1","jena","<dataset>"]
         elif len(segments) >= 4 and segments[:3] == ["api", "v1", "jena"]:
@@ -164,15 +184,16 @@ def extract_dataset_names(sparql_endpoints: list[str]) -> list[str]:
 
     return datasetnames
 
+
 def download_dataset_as_turtle_file(
-        address: str,
-        dataset_name: str,
-        *,
-        token: str | None = None,
-        turtlefile_name: str | None = None,
-        timeout: tuple[int, int] = (5, 5),
-        verify: bool = True,
-        scheme: str = "https",
+    address: str,
+    dataset_name: str,
+    *,
+    token: str | None = None,
+    turtlefile_name: str | None = None,
+    timeout: tuple[int, int] = (5, 5),
+    verify: bool = True,
+    scheme: str = "https",
 ) -> str:
     """
     Download a dataset from an Ontodocker/Fuseki instance and save it as a Turtle (.ttl) file.
@@ -219,9 +240,13 @@ def download_dataset_as_turtle_file(
         If writing the output file fails (e.g., permission issues, invalid path).
     """
     if not address or not address.strip():
-        raise ValueError("address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'")
+        raise ValueError(
+            "address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'"
+        )
     if "://" in address:
-        raise ValueError("address must not include a scheme (remove 'http://...' or 'https://...')")
+        raise ValueError(
+            "address must not include a scheme (remove 'http://...' or 'https://...')"
+        )
 
     if not dataset_name or not dataset_name.strip():
         raise ValueError("datset_name must be non-empty")
@@ -239,26 +264,32 @@ def download_dataset_as_turtle_file(
     try:
         result = resp.content.decode()  # server typically returns text/JSON-ish content
     except UnicodeDecodeError as e:
-        raise RuntimeError(f"Failed to decode response body as text from {url}: {e}") from e
+        raise RuntimeError(
+            f"Failed to decode response body as text from {url}: {e}"
+        ) from e
 
     if turtlefile_name is None:
         cwd = os.getcwd()
         turtlefile_name = f"{cwd}/{dataset_name}.ttl"
-        warnings.warn(f"No path/filename to save the turltfile to was explicitly provided. It is saved under {turtlefile_name}", UserWarning)
-        
-    with open(turtlefile_name, 'w') as file:
+        warnings.warn(
+            f"No path/filename to save the turltfile to was explicitly provided. It is saved under {turtlefile_name}",
+            UserWarning,
+        )
+
+    with open(turtlefile_name, "w") as file:
         file.write(result)
 
     return turtlefile_name
 
+
 def create_empty_dataset(
-        address: str,
-        dataset_name: str,
-        *,
-        token: str | None = None,
-        timeout: tuple[int, int] = (5, 5),
-        verify: bool = True,
-        scheme: str = "https",
+    address: str,
+    dataset_name: str,
+    *,
+    token: str | None = None,
+    timeout: tuple[int, int] = (5, 5),
+    verify: bool = True,
+    scheme: str = "https",
 ) -> str:
     """
     Create an empty dataset on an Ontodocker/Fuseki instance.
@@ -299,9 +330,13 @@ def create_empty_dataset(
         decoded as text.
     """
     if not address or not address.strip():
-        raise ValueError("address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'")
+        raise ValueError(
+            "address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'"
+        )
     if "://" in address:
-        raise ValueError("address must not include a scheme (remove 'http://...' or 'https://...')")
+        raise ValueError(
+            "address must not include a scheme (remove 'http://...' or 'https://...')"
+        )
 
     if not dataset_name or not dataset_name.strip():
         raise ValueError("datset_name must be non-empty")
@@ -314,24 +349,29 @@ def create_empty_dataset(
         resp = requests.put(url, headers=headers, timeout=timeout, verify=verify)
         resp.raise_for_status()
     except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Failed to create dataset '{dataset_name}' at {url}: {e}") from e
+        raise RuntimeError(
+            f"Failed to create dataset '{dataset_name}' at {url}: {e}"
+        ) from e
 
     try:
         result = resp.content.decode()  # server typically returns text/JSON-ish content
     except UnicodeDecodeError as e:
-        raise RuntimeError(f"Failed to decode response body as text from {url}: {e}") from e
+        raise RuntimeError(
+            f"Failed to decode response body as text from {url}: {e}"
+        ) from e
 
     return result
 
+
 def upload_turtlefile(
-        address: str,  # ontodocker/fuseki base address without scheme/protocol and delimiter (eg 'https://')
-        dataset_name: str, # plain dataset name
-        turtlefile: str | None = None,
-        *,
-        token: str | None = None,
-        timeout: tuple[int, int] = (5, 5),
-        verify: bool = True,
-        scheme: str = "https",
+    address: str,  # ontodocker/fuseki base address without scheme/protocol and delimiter (eg 'https://')
+    dataset_name: str,  # plain dataset name
+    turtlefile: str | None = None,
+    *,
+    token: str | None = None,
+    timeout: tuple[int, int] = (5, 5),
+    verify: bool = True,
+    scheme: str = "https",
 ) -> str:
     """
     Upload a Turtle (.ttl) file into an existing dataset on an Ontodocker/Fuseki instance.
@@ -380,9 +420,13 @@ def upload_turtlefile(
         decoded as text.
     """
     if not address or not address.strip():
-        raise ValueError("address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'")
+        raise ValueError(
+            "address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'"
+        )
     if "://" in address:
-        raise ValueError("address must not include a scheme (remove 'http://...' or 'https://...')")
+        raise ValueError(
+            "address must not include a scheme (remove 'http://...' or 'https://...')"
+        )
 
     if not dataset_name or not dataset_name.strip():
         raise ValueError("datset_name must be non-empty")
@@ -395,26 +439,37 @@ def upload_turtlefile(
     headers = {"Authorization": f"Bearer {token}"} if token else {}
 
     try:
-        resp = requests.post(url, headers=headers, files={'file': open(turtlefile, 'rb')}, timeout=timeout, verify=verify)
+        resp = requests.post(
+            url,
+            headers=headers,
+            files={"file": open(turtlefile, "rb")},
+            timeout=timeout,
+            verify=verify,
+        )
         resp.raise_for_status()
     except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Failed to upload turtlefile '{turtlefile}' to dataset '{dataset_name}' at {url}: {e}") from e
+        raise RuntimeError(
+            f"Failed to upload turtlefile '{turtlefile}' to dataset '{dataset_name}' at {url}: {e}"
+        ) from e
 
     try:
         result = resp.content.decode()  # server typically returns text/JSON-ish content
     except UnicodeDecodeError as e:
-        raise RuntimeError(f"Failed to decode response body as text from {url}: {e}") from e
+        raise RuntimeError(
+            f"Failed to decode response body as text from {url}: {e}"
+        ) from e
 
     return result
 
+
 def delete_dataset(
-        address: str,
-        dataset_name: str,
-        *,
-        token: str | None = None,
-        timeout: tuple[int, int] = (5, 5),
-        verify: bool = True,
-        scheme: str = "https",
+    address: str,
+    dataset_name: str,
+    *,
+    token: str | None = None,
+    timeout: tuple[int, int] = (5, 5),
+    verify: bool = True,
+    scheme: str = "https",
 ) -> str:
     """
     Delete a dataset from an Ontodocker/Fuseki instance.
@@ -455,9 +510,13 @@ def delete_dataset(
         decoded as text.
     """
     if not address or not address.strip():
-        raise ValueError("address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'")
+        raise ValueError(
+            "address must be a non-empty host (without scheme), e.g. 'ontodocker.example.org'"
+        )
     if "://" in address:
-        raise ValueError("address must not include a scheme (remove 'http://...' or 'https://...')")
+        raise ValueError(
+            "address must not include a scheme (remove 'http://...' or 'https://...')"
+        )
 
     if not dataset_name or not dataset_name.strip():
         raise ValueError("datset_name must be non-empty")
@@ -470,18 +529,24 @@ def delete_dataset(
         resp = requests.delete(url, headers=headers, timeout=timeout, verify=verify)
         resp.raise_for_status()
     except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Failed to delete dataset '{dataset_name}' at {url}: {e}") from e
+        raise RuntimeError(
+            f"Failed to delete dataset '{dataset_name}' at {url}: {e}"
+        ) from e
 
     try:
         result = resp.content.decode()  # server typically returns text/JSON-ish content
     except UnicodeDecodeError as e:
-        raise RuntimeError(f"Failed to decode response body as text from {url}: {e}") from e
+        raise RuntimeError(
+            f"Failed to decode response body as text from {url}: {e}"
+        ) from e
 
     return result
 
-def make_dataframe(result: Mapping[str, Any],
-                   columns: Sequence[str],
-                   ) -> pd.DataFrame:
+
+def make_dataframe(
+    result: Mapping[str, Any],
+    columns: Sequence[str],
+) -> pd.DataFrame:
     """
     Convert a SPARQL JSON result (SPARQL Protocol / SPARQLWrapper-style) into a pandas DataFrame.
 
@@ -512,21 +577,22 @@ def make_dataframe(result: Mapping[str, Any],
         If the number of extracted values per row does not match ``len(columns)``.
     """
     liste = []
-    for r in result['results']['bindings']:
+    for r in result["results"]["bindings"]:
         row = []
         for k in r.keys():
-            row.append(r[k]['value'])
+            row.append(r[k]["value"])
             liste.append(row)
-            df = pd.DataFrame(liste, columns = columns)
+            df = pd.DataFrame(liste, columns=columns)
     return df
 
+
 def send_query(
-        endpoint: str,
-        query: str,
-        columns: list[str] | None = None,
-        *,
-        token: str | None = None,
-        print_to_screen: bool = False,
+    endpoint: str,
+    query: str,
+    columns: list[str] | None = None,
+    *,
+    token: str | None = None,
+    print_to_screen: bool = False,
 ) -> pd.DataFrame:
     """
         Execute a SPARQL query against an endpoint and return the results as a pandas DataFrame.
@@ -562,7 +628,7 @@ def send_query(
         If ``endpoint`` or ``query`` is empty/blank, or if ``columns`` is ``None``.
         Exception
         Any exceptions raised by ``SPARQLWrapper`` during query execution or conversion.
-        """
+    """
     if not endpoint or not endpoint.strip():
         raise ValueError("endpoint must be non-empty.")
 
@@ -571,11 +637,11 @@ def send_query(
 
     if columns is None:
         raise ValueError("Please provide columns for the expected response.")
-    
+
     sparql = SPARQLWrapper(endpoint)
-    sparql.setReturnFormat('json')
+    sparql.setReturnFormat("json")
     if token is not None:
-        sparql.addCustomHttpHeader("Authorization", f'Bearer {token}')
+        sparql.addCustomHttpHeader("Authorization", f"Bearer {token}")
         sparql.setQuery(query)
         result = sparql.queryAndConvert()
         result_df = make_dataframe(result, columns)
