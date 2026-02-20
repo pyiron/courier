@@ -1,6 +1,4 @@
-# courier/http/url.py
-from __future__ import annotations
-
+# tools for building urls
 from urllib.parse import urlsplit, urlunsplit
 
 from courier.exceptions import InvalidAddressError, ValidationError
