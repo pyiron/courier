@@ -14,3 +14,4 @@ core.*
 .#*
 \#*#
 .dir-locals.el
+_version.py
