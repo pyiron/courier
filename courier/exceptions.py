@@ -8,6 +8,14 @@ class CourierError(Exception):
     """Base exception for courier."""
 
 
+class InvalidAddressError(CourierError, ValueError):
+    """Raised when a provided server address cannot be normalized."""
+
+
+class ValidationError(CourierError, ValueError):
+    """Raised when user input is invalid (e.g. empty dataset name)."""
+
+
 @dataclass
 class HttpError(CourierError):
     """Raised when an HTTP request fails."""
@@ -26,11 +34,3 @@ class HttpError(CourierError):
         if self.message:
             parts.append(self.message)
         return " | ".join(parts)
-
-
-class InvalidAddressError(CourierError, ValueError):
-    """Raised when a provided server address cannot be normalized."""
-
-
-class ValidationError(CourierError, ValueError):
-    """Raised when user input is invalid (e.g. empty dataset name)."""
