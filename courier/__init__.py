@@ -1,3 +1,9 @@
+"""
+courier: Interfaces for publishing workflow recipes, instances and related assets.
+
+Public API is intentionally small; import service clients from `courier.services`.
+"""
+
 import importlib.metadata
 
 try:
