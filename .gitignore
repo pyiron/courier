@@ -13,3 +13,5 @@ core.*
 *.~undo-tree~
 .#*
 \#*#
+.dir-locals.el
+_version.py
