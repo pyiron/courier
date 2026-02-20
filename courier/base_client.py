@@ -1,6 +1,5 @@
 # base class for clients supported by courier
 
-from dataclasses import dataclass
 from typing import Any
 
 import requests
@@ -11,10 +10,9 @@ from courier.http.session import create_session
 from courier.http.url import normalize_base_url
 
 
-@dataclass
 class BaseClient:
     """
-    Base client providing shared HTTP and address normalization.
+    Base client providing shared HTTP behavior and address normalization.
 
     Parameters
     ----------
@@ -32,21 +30,27 @@ class BaseClient:
         Optional externally managed requests session.
     """
 
-    address: str
-    token: str | None = None
-    default_scheme: str = "https"
-    verify: bool | str = True
-    timeout: float | tuple[float, float] = 30.0
-    session: requests.Session | None = None
+    def __init__(
+        self,
+        address: str,
+        *,
+        token: str | None = None,
+        default_scheme: str = "https",
+        verify: bool | str = True,
+        timeout: float | tuple[float, float] = 30.0,
+        session: requests.Session | None = None,
+    ) -> None:
+        self.address = address
+        self.token = token
+        self.default_scheme = default_scheme
+        self.verify = verify
+        self.timeout = timeout
 
-    def __post_init__(self) -> None:
         self.base_url = normalize_base_url(
             self.address, default_scheme=self.default_scheme
         )
-        if self.session is None:
-            self.session = create_session()
 
-        # Apply auth header to the session (service may override/extend).
+        self.session = session if session is not None else create_session()
         self.session.headers.update(bearer_headers(self.token))
 
     def _request(
@@ -57,37 +61,43 @@ class BaseClient:
         params: dict[str, Any] | None = None,
         json: Any | None = None,
         data: Any | None = None,
+        files: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
         stream: bool = False,
     ) -> requests.Response:
-        resp = self.session.request(
+        return self.session.request(
             method=method,
             url=url,
             params=params,
             json=json,
             data=data,
+            files=files,
             headers=headers,
             timeout=self.timeout,
             verify=self.verify,
             stream=stream,
         )
-        return resp
-
-    def _get_json(self, url: str, *, params: dict[str, Any] | None = None) -> Any:
-        return read_json(self._request("GET", url, params=params))
 
     def _get_text(self, url: str, *, params: dict[str, Any] | None = None) -> str:
         return read_text(self._request("GET", url, params=params))
 
-    def _post_json(
-        self, url: str, *, json: Any | None = None, data: Any | None = None
-    ) -> Any:
-        return read_json(self._request("POST", url, json=json, data=data))
+    def _get_json(self, url: str, *, params: dict[str, Any] | None = None) -> Any:
+        return read_json(self._request("GET", url, params=params))
+
+    def _put_text(
+        self, url: str, *, data: Any | None = None, json: Any | None = None
+    ) -> str:
+        return read_text(self._request("PUT", url, data=data, json=json))
 
     def _post_text(
-        self, url: str, *, json: Any | None = None, data: Any | None = None
+        self,
+        url: str,
+        *,
+        data: Any | None = None,
+        json: Any | None = None,
+        files: dict[str, Any] | None = None,
     ) -> str:
-        return read_text(self._request("POST", url, json=json, data=data))
+        return read_text(self._request("POST", url, data=data, json=json, files=files))
 
     def _delete_text(self, url: str) -> str:
         return read_text(self._request("DELETE", url))
