@@ -3,6 +3,7 @@ Dataset CRUD operations for Ontodocker.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from courier.exceptions import ValidationError
 from courier.http.url import join_url
@@ -27,7 +28,10 @@ class DatasetsResource:
         """
         return sorted({e.dataset for e in self.client.endpoints.list()})
 
-    def create(self, name: str) -> str:
+    def create(
+        self,
+        name: str,
+    ) -> str:
         """
         Create an empty dataset.
 
@@ -54,7 +58,10 @@ class DatasetsResource:
         )
         return self.client._put_text(url)
 
-    def delete(self, name: str) -> str:
+    def delete(
+        self,
+        name: str,
+    ) -> str:
         """
         Delete a dataset.
 
@@ -81,7 +88,11 @@ class DatasetsResource:
         )
         return self.client._delete_text(url)
 
-    def download_turtle(self, name: str) -> str:
+    def download_turtle(
+        self,
+        name: str,
+        filename: str | None = None,
+    ) -> str:
         """
         Download a dataset as Turtle text.
 
@@ -106,9 +117,20 @@ class DatasetsResource:
         url = join_url(
             self.client.base_url, segments=["api", "v1", "jena", name.strip()]
         )
-        return self.client._get_text(url)
 
-    def upload_turtlefile(self, name: str, turtlefile: str) -> str:
+        content = self.client._get_text(url)
+
+        if filename is not None:
+            with open(file=filename, mode="w") as f:
+                f.write(content)
+
+        return content
+
+    def upload_turtlefile(
+        self,
+        name: str,
+        turtlefile: str,
+    ) -> str:
         """
         Upload a Turtle (.ttl) file into an existing dataset.
 
