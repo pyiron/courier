@@ -91,7 +91,7 @@ class DatasetsResource:
     def download_turtle(
         self,
         name: str,
-        filename: str | None = None,
+        filename: str | Path | None = None,
     ) -> str:
         """
         Download a dataset as Turtle text.
@@ -100,29 +100,37 @@ class DatasetsResource:
         ----------
         name
             Dataset name.
+        filename
+            If provided, write the Turtle content to this file (UTF-8).
 
         Returns
         -------
         ttl
-            Turtle document as text.
+            Turtle document as text (also returned when `filename` is provided).
 
         Raises
         ------
         ValidationError
-            If `name` is empty/blank.
+            If `name` is empty/blank, or `filename` is blank when provided.
+        OSError
+            If the file cannot be written (e.g. permissions, missing directory).
         """
+
         if not name or not name.strip():
             raise ValidationError("dataset name must be non-empty")
+
+        if filename is not None:
+            # Guard against accidental "" or "   "
+            if isinstance(filename, str) and not filename.strip():
+                raise ValidationError("filename must be a non-empty path when provided")
 
         url = join_url(
             self.client.base_url, segments=["api", "v1", "jena", name.strip()]
         )
-
         content = self.client._get_text(url)
-
         if filename is not None:
-            with open(file=filename, mode="w") as f:
-                f.write(content)
+            path = Path(filename)
+            _ = path.write_text(content, encoding="utf-8")
 
         return content
 
