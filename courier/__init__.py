@@ -13,22 +13,7 @@ except importlib.metadata.PackageNotFoundError:
     # Repository clones will register an unknown version
     __version__ = "0.0.0+unknown"
 
-from courier.ontodocker import (
-    rectify_endpoints,
-    get_all_dataset_sparql_endpoints,
-    extract_dataset_names,
-    download_dataset_as_turtle_file,
-    create_empty_dataset,
-    upload_turtlefile,
-    delete_dataset,
-)
+from courier._version import __version__
+from courier.services.ontodocker import OntodockerClient
 
-__all__ = [
-    "rectify_endpoints",
-    "get_all_dataset_sparql_endpoints",
-    "extract_dataset_names",
-    "download_dataset_as_turtle_file",
-    "create_empty_dataset",
-    "upload_turtlefile",
-    "delete_dataset",
-]
+__all__ = ["__version__", "OntodockerClient"]
