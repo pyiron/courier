@@ -122,7 +122,7 @@ class DatasetsResource:
         if filename is not None:
             # Guard against accidental "" or "   "
             if isinstance(filename, str) and not filename.strip():
-                raise ValidationError("filename must be a non-empty path when provided")
+                raise ValidationError("filename must be a non-empty path (str) or None")
 
         url = join_url(
             self.client.base_url, segments=["api", "v1", "jena", name.strip()]
@@ -131,6 +131,7 @@ class DatasetsResource:
         if filename is not None:
             path = Path(filename)
             _ = path.write_text(content, encoding="utf-8")
+            print(f"Wrote {path}.")
 
         return content
 
