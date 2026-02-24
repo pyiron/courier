@@ -78,16 +78,35 @@ class BaseClient:
             stream=stream,
         )
 
-    def _get_text(self, url: str, *, params: dict[str, Any] | None = None) -> str:
-        return read_text(self._request("GET", url, params=params))
+    def _get_text(
+        self,
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> str:
+        return read_text(self._request("GET", url, params=params, headers=headers))
 
-    def _get_json(self, url: str, *, params: dict[str, Any] | None = None) -> Any:
-        return read_json(self._request("GET", url, params=params))
+    def _get_json(
+        self,
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Any:
+        return read_json(self._request("GET", url, params=params, headers=headers))
 
     def _put_text(
-        self, url: str, *, data: Any | None = None, json: Any | None = None
+        self,
+        url: str,
+        *,
+        data: Any | None = None,
+        json: Any | None = None,
+        headers: dict[str, str] | None = None,
     ) -> str:
-        return read_text(self._request("PUT", url, data=data, json=json))
+        return read_text(
+            self._request("PUT", url, data=data, json=json, headers=headers)
+        )
 
     def _post_text(
         self,
@@ -96,8 +115,13 @@ class BaseClient:
         data: Any | None = None,
         json: Any | None = None,
         files: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> str:
-        return read_text(self._request("POST", url, data=data, json=json, files=files))
+        return read_text(
+            self._request(
+                "POST", url, data=data, json=json, files=files, headers=headers
+            )
+        )
 
-    def _delete_text(self, url: str) -> str:
-        return read_text(self._request("DELETE", url))
+    def _delete_text(self, url: str, *, headers: dict[str, str] | None = None) -> str:
+        return read_text(self._request("DELETE", url, headers=headers))
