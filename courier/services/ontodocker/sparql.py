@@ -8,6 +8,7 @@ import pandas as pd
 from SPARQLWrapper import SPARQLWrapper
 
 from courier.exceptions import ValidationError
+from courier.http.request import read_text
 from courier.http.url import join_url
 from courier.services.ontodocker._compat import make_dataframe
 
@@ -42,7 +43,53 @@ class SparqlResource:
             segments=["api", "v1", "jena", dataset.strip(), "sparql"],
         )
 
-    def query(self, dataset: str, query: str, columns: list[str]) -> pd.DataFrame:
+    def query_raw(
+        self,
+        dataset: str,
+        query: str,
+        *,
+        accept: str = "application/sparql-results+json",
+    ) -> str:
+        """
+        Execute a SPARQL query and return the response body as text.
+
+        Parameters
+        ----------
+        dataset
+            Dataset name.
+        query
+            SPARQL query string.
+        accept
+            Value for the HTTP ``Accept`` header. For SELECT/ASK, use
+            ``"application/sparql-results+json"`` (default). For CONSTRUCT/DESCRIBE,
+            use an RDF serialization such as ``"text/turtle"``.
+
+        Returns
+        -------
+        response_text
+            Response body as text. For SELECT/ASK with the default `accept`, this is
+            SPARQL results JSON as text.
+
+        Raises
+        ------
+        ValidationError
+            If `dataset` or `query` is empty/blank.
+        HttpError
+            If the HTTP request fails (non-2xx) or the response cannot be read.
+        """
+        if not dataset or not dataset.strip():
+            raise ValidationError("dataset must be non-empty")
+        if not query or not query.strip():
+            raise ValidationError("query must be non-empty")
+
+        url = self.endpoint(dataset.strip())
+        return self.client._get_text(
+            url,
+            params={"query": query},
+            headers={"Accept": accept},
+        )
+
+    def query_df(self, dataset: str, query: str, columns: list[str]) -> pd.DataFrame:
         """
         Execute a SPARQL query against a dataset and return a pandas DataFrame.
 
