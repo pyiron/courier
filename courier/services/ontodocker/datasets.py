@@ -3,6 +3,7 @@ Dataset CRUD operations for Ontodocker.
 """
 
 from dataclasses import dataclass
+from io import BytesIO
 from pathlib import Path
 
 from courier.exceptions import ValidationError
@@ -175,3 +176,89 @@ class DatasetsResource:
 
         with open(turtlefile, "rb") as f:
             return self.client._post_text(url, files={"file": f})
+
+    def upload_graph(
+        self,
+        name: str,
+        graph: object,
+        *,
+        filename: str | Path | None = None,
+        encoding: str = "utf-8",
+    ) -> str:
+        """
+        Serialize an rdflib.Graph to Turtle and upload it into an existing dataset.
+
+        Ontodocker requires uploads in Turtle format. This method serializes the
+        provided graph in-memory and uploads it as multipart form data, using the
+        same endpoint and form field name as `upload_turtlefile`.
+
+        If `filename` is provided, the serialized Turtle is also written to that path
+        (UTF-8).
+
+        Parameters
+        ----------
+        name
+            Dataset name.
+        graph
+            An ``rdflib.Graph`` instance.
+        filename
+            If provided, also write the serialized Turtle text to this file (UTF-8).
+        encoding
+            Encoding used when converting Turtle text to bytes and when writing
+            to `filename`.
+
+        Returns
+        -------
+        response_text
+            Response body returned by the server.
+
+        Raises
+        ------
+        ValidationError
+            If `name` is empty/blank, `graph` is not an rdflib.Graph, or `filename`
+            is blank when provided.
+        ImportError
+            If `rdflib` is not installed.
+        OSError
+            If `filename` is provided and cannot be written.
+        """
+        if not name or not name.strip():
+            raise ValidationError("dataset name must be non-empty")
+
+        if filename is not None and isinstance(filename, str) and not filename.strip():
+            raise ValidationError(
+                "filename must be a non-empty path (str/Path) or None"
+            )
+
+        try:
+            import rdflib  # type: ignore[import-not-found]
+        except Exception as e:
+            raise ImportError("upload_graph requires rdflib.") from e
+
+        if not isinstance(graph, rdflib.Graph):
+            raise ValidationError("graph must be an rdflib.Graph instance")
+
+        try:
+            ttl = graph.serialize(format="turtle")
+        except Exception as e:
+            raise ValidationError(
+                "Failed to serialize graph to Turtle using rdflib.Graph.serialize(format='turtle')."
+            ) from e
+
+        if isinstance(ttl, bytes):
+            ttl_bytes = ttl
+            ttl_text = ttl.decode(encoding, errors="strict")
+        else:
+            ttl_text = str(ttl)
+            ttl_bytes = ttl_text.encode(encoding)
+
+            if filename is not None:
+                _ = Path(filename).write_text(ttl_text, encoding=encoding)
+
+        url = join_url(
+            self.client.base_url, segments=["api", "v1", "jena", name.strip()]
+        )
+
+        bio = BytesIO(ttl_bytes)
+        files = {"file": ("graph.ttl", bio, "text/turtle")}
+        return self.client._post_text(url, files=files)
