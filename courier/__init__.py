@@ -13,7 +13,6 @@ except importlib.metadata.PackageNotFoundError:
     # Repository clones will register an unknown version
     __version__ = "0.0.0+unknown"
 
-from courier._version import __version__
 from courier.services.ontodocker import OntodockerClient
 
-__all__ = ["__version__", "OntodockerClient"]
+__all__ = ["OntodockerClient"]
