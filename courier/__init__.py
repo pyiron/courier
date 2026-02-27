@@ -8,13 +8,13 @@ except importlib.metadata.PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
 from courier.ontodocker import (
-    rectify_endpoints,
-    get_all_dataset_sparql_endpoints,
-    extract_dataset_names,
-    download_dataset_as_turtle_file,
     create_empty_dataset,
-    upload_turtlefile,
     delete_dataset,
+    download_dataset_as_turtle_file,
+    extract_dataset_names,
+    get_all_dataset_sparql_endpoints,
+    rectify_endpoints,
+    upload_turtlefile,
 )
 
 __all__ = [
