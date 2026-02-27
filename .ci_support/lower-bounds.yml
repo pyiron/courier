@@ -5,4 +5,7 @@ dependencies:
 - hatch-vcs =0.5.0
 - numpy =2.3.0
 - python =3.11
+- pandas =3.0.0
+- requests =2.32.5
+- sparqlwrapper =2.0.0
   
