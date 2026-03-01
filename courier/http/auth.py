@@ -1,8 +1,3 @@
-# authentication mechanisms used by courier
-
-from collections.abc import Mapping
-
-
 def bearer_headers(token: str | None) -> dict[str, str]:
     """
     Construct Authorization headers for a bearer token.
