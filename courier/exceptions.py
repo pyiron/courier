@@ -1,5 +1,3 @@
-# central source for exceptions thrown by courier
-
 from dataclasses import dataclass
 from typing import Any
 
