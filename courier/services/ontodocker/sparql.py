@@ -8,7 +8,6 @@ import pandas as pd
 from SPARQLWrapper import SPARQLWrapper
 
 from courier.exceptions import ValidationError
-from courier.http.request import read_text
 from courier.http.url import join_url
 from courier.services.ontodocker._compat import make_dataframe
 
