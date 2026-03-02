@@ -33,3 +33,6 @@ class TestBearerHeaders(unittest.TestCase):
         token = "eyJhbGciOiJSUzI1NiJ9.payload.signature"
         result = bearer_headers(token)
         self.assertEqual(result["Authorization"], f"Bearer {token}")
+
+if __name__ == "__main__":
+    unittest.main()
