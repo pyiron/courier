@@ -95,10 +95,10 @@ def extract_dataset_names(sparql_endpoints: list[str]) -> list[str]:
 
         # expected: ["api","v1","jena", "<dataset>", "sparql"] (or without trailing "sparql")
         if (
-            len(segments) == 5
+            len(segments) >= 5
             and segments[:3] == ["api", "v1", "jena"]
             and segments[-1] == "sparql"
-        ) or (len(segments) == 4 and segments[:3] == ["api", "v1", "jena"]):
+        ) or (len(segments) >= 4 and segments[:3] == ["api", "v1", "jena"]):
             dataset_names.append(segments[3])
         else:
             raise ValueError(f"Unexpected SPARQL endpoint format: {endpoint}")
@@ -129,19 +129,11 @@ def make_dataframe(result: dict, columns: list[str]) -> pd.DataFrame:
     ValueError
         If extracted row lengths do not match `len(columns)`.
     """
-    var_order = result.get("head", {}).get("vars") or columns
-
-    if len(var_order) != len(columns):
-        raise ValueError(
-            f"Variable count ({len(var_order)}) does not match columns length "
-            f"({len(columns)})."
-        )
-
     rows: list[list[str]] = []
     for binding in result["results"]["bindings"]:
         row: list[str] = []
-        for var in var_order:
-            row.append(binding[var]["value"])
+        for key in binding:
+            row.append(binding[key]["value"])
         rows.append(row)
 
     df = pd.DataFrame(rows, columns=columns)

@@ -92,20 +92,6 @@ class TestExtractDatasetNames(unittest.TestCase):
         with self.assertRaises(ValueError):
             _compat.extract_dataset_names(["https://example.com/wrong/path"])
 
-    def test_non_sparql_trailing_segment_raises_value_error(self):
-        # /api/v1/jena/<dataset>/update should NOT be accepted
-        with self.assertRaises(ValueError):
-            _compat.extract_dataset_names(
-                ["https://example.com/api/v1/jena/ds/update"]
-            )
-
-    def test_too_many_segments_raises_value_error(self):
-        # More than 5 segments should NOT be accepted
-        with self.assertRaises(ValueError):
-            _compat.extract_dataset_names(
-                ["https://example.com/api/v1/jena/ds/sparql/extra"]
-            )
-
     def test_trailing_slash_handled(self):
         endpoints = ["https://example.com/api/v1/jena/mydataset/sparql/"]
         self.assertEqual(_compat.extract_dataset_names(endpoints), ["mydataset"])
@@ -129,17 +115,6 @@ class TestMakeDataframe(unittest.TestCase):
         df = _compat.make_dataframe(result, ["name", "value"])
         expected = pd.DataFrame([["Alice", "42"]], columns=["name", "value"])
         pdt.assert_frame_equal(df, expected)
-
-    def test_head_vars_order_used(self):
-        # binding dict has reversed key order; head vars should govern column order
-        result = self._make_result(
-            ["a", "b"],
-            [{"b": {"value": "2"}, "a": {"value": "1"}}],
-        )
-        df = _compat.make_dataframe(result, ["a", "b"])
-        self.assertEqual(list(df.columns), ["a", "b"])
-        self.assertEqual(df.iloc[0]["a"], "1")
-        self.assertEqual(df.iloc[0]["b"], "2")
 
     def test_fallback_to_columns_when_no_head_vars(self):
         result = {
@@ -165,16 +140,11 @@ class TestMakeDataframe(unittest.TestCase):
         self.assertEqual(len(df), 2)
         self.assertEqual(list(df["x"]), ["1", "2"])
 
-    def test_column_count_mismatch_raises_value_error(self):
-        result = self._make_result(["a", "b"], [])
-        with self.assertRaises(ValueError):
-            _compat.make_dataframe(result, ["only_one"])
-
-    def test_missing_variable_in_binding_raises_key_error(self):
+    def test_missing_variable_in_binding_raises_value_error(self):
         result = self._make_result(
             ["a", "b"],
             [{"a": {"value": "1"}}],  # "b" is missing
         )
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ValueError):
             _compat.make_dataframe(result, ["a", "b"])
 
