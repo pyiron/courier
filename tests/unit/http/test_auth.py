@@ -34,5 +34,6 @@ class TestBearerHeaders(unittest.TestCase):
         result = bearer_headers(token)
         self.assertEqual(result["Authorization"], f"Bearer {token}")
 
+
 if __name__ == "__main__":
     unittest.main()
