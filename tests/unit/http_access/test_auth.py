@@ -1,6 +1,6 @@
 import unittest
 
-from courier.http.auth import bearer_headers
+from courier.http_access.auth import bearer_headers
 
 
 class TestBearerHeaders(unittest.TestCase):
