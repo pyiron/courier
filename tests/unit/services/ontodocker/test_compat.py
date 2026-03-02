@@ -20,9 +20,7 @@ class TestRectifyEndpoints(unittest.TestCase):
         self.assertNotIn(":None", result)
 
     def test_443_port_replaced(self):
-        result = _compat.rectify_endpoints(
-            "https://example.com:443/api/jena/ds/sparql"
-        )
+        result = _compat.rectify_endpoints("https://example.com:443/api/jena/ds/sparql")
         self.assertIn("/api/v1/jena", result)
         self.assertNotIn(":443", result)
 
@@ -147,4 +145,3 @@ class TestMakeDataframe(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             _compat.make_dataframe(result, ["a", "b"])
-
