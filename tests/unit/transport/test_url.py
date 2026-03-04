@@ -72,4 +72,4 @@ class TestJoinUrl(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    _ = unittest.main()
+    unittest.main()
