@@ -24,11 +24,7 @@ def raise_for_status_with_body(resp: requests.Response) -> None:
     try:
         resp.raise_for_status()
     except requests.HTTPError as e:
-        text = None
-        try:
-            text = resp.text
-        except Exception:
-            text = None
+        text = getattr(resp, "text", None)
         raise HttpError(
             method=resp.request.method if resp.request else "HTTP",
             url=resp.url,
