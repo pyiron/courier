@@ -7,8 +7,8 @@ from courier.transport.url import join_url, normalize_base_url
 class TestNormalizeBaseUrl(unittest.TestCase):
     def test_blank_address_raises(self):
         for addr in ["", " ", "\n\t"]:
-            with self.subTest(addr=addr), self.assertRaises(InvalidAddressError):
-                normalize_base_url(addr)
+            with self.subTest(addr=addr):
+                self.assertRaises(InvalidAddressError, normalize_base_url, addr)
 
     def test_host_only_gets_default_scheme(self):
         self.assertEqual(normalize_base_url("example.org"), "https://example.org")
@@ -23,8 +23,7 @@ class TestNormalizeBaseUrl(unittest.TestCase):
         self.assertEqual(normalize_base_url("http://example.org"), "http://example.org")
 
     def test_disallowed_scheme_raises(self):
-        with self.assertRaises(InvalidAddressError):
-            normalize_base_url("ftp://example.org")
+        self.assertRaises(InvalidAddressError, normalize_base_url, "ftp://example.org")
 
     def test_path_query_fragment_rejected_by_default(self):
         cases = [
@@ -34,8 +33,8 @@ class TestNormalizeBaseUrl(unittest.TestCase):
             "https://example.org/api?x=1#frag",
         ]
         for addr in cases:
-            with self.subTest(addr=addr), self.assertRaises(InvalidAddressError):
-                normalize_base_url(addr)
+            with self.subTest(addr=addr):
+                self.assertRaises(InvalidAddressError, normalize_base_url, addr)
 
     def test_path_query_fragment_allowed_when_require_host_only_false(self):
         self.assertEqual(
@@ -50,8 +49,8 @@ class TestNormalizeBaseUrl(unittest.TestCase):
 class TestJoinUrl(unittest.TestCase):
     def test_blank_base_raises(self):
         for base in ["", " ", "\n"]:
-            with self.subTest(base=base), self.assertRaises(ValidationError):
-                join_url(base, segments=["api"])
+            with self.subTest(base=base):
+                self.assertRaises(ValidationError, lambda: join_url(base, segments=["api"]))
 
     def test_join_normalizes_slashes(self):
         self.assertEqual(
