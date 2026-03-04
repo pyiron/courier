@@ -62,11 +62,12 @@ def normalize_base_url(
             "address must include a host (and optional port), e.g. 'example.org' or 'https://example.org'"
         )
 
-    if require_host_only:
-        if parts.path not in ("", "/") or parts.query or parts.fragment:
-            raise InvalidAddressError(
-                "address must be host[:port] only (no path/query/fragment). Example: 'https://example.org:8080'"
-            )
+    if require_host_only and (
+        parts.path not in ("", "/") or parts.query or parts.fragment
+    ):
+        raise InvalidAddressError(
+            "address must be host[:port] only (no path/query/fragment). Example: 'https://example.org:8080'"
+        )
 
     return urlunsplit((scheme, parts.netloc, "", "", ""))
 
