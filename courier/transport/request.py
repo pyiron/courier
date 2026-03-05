@@ -56,7 +56,7 @@ def read_json(resp: requests.Response) -> Any:
     raise_for_status_with_body(resp)
     try:
         return resp.json()
-    except Exception as e:
+    except ValueError as e:
         raise HttpError(
             method=resp.request.method if resp.request else "HTTP",
             url=resp.url,
