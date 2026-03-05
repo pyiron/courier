@@ -3,7 +3,7 @@ import unittest
 import requests
 
 from courier.exceptions import HttpError
-from courier.transport.request import raise_for_status_with_body, read_json
+from courier.transport.request import _raise_for_status_with_body, read_json
 
 
 class _FakeRequest:
@@ -57,7 +57,7 @@ class TestRaiseForStatusWithBody(unittest.TestCase):
         )
 
         with self.assertRaises(HttpError) as ctx:
-            raise_for_status_with_body(resp)
+            _raise_for_status_with_body(resp)
 
         err = ctx.exception
         self.assertEqual(err.method, "GET")
@@ -75,7 +75,7 @@ class TestRaiseForStatusWithBody(unittest.TestCase):
         )
 
         with self.assertRaises(HttpError) as ctx:
-            raise_for_status_with_body(resp)
+            _raise_for_status_with_body(resp)
 
         self.assertEqual(ctx.exception.method, "HTTP")
 

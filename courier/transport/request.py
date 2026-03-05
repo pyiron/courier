@@ -7,7 +7,7 @@ import requests
 from courier.exceptions import HttpError
 
 
-def raise_for_status_with_body(resp: requests.Response) -> None:
+def _raise_for_status_with_body(resp: requests.Response) -> None:
     """
     Raise `HttpError` if the response indicates an HTTP error.
 
@@ -53,7 +53,7 @@ def read_json(resp: requests.Response) -> Any:
     HttpError
         If status indicates error or JSON decoding fails.
     """
-    raise_for_status_with_body(resp)
+    _raise_for_status_with_body(resp)
     try:
         return resp.json()
     except ValueError as e:
@@ -85,5 +85,5 @@ def read_text(resp: requests.Response) -> str:
     HttpError
         If status indicates error.
     """
-    raise_for_status_with_body(resp)
+    _raise_for_status_with_body(resp)
     return resp.text
