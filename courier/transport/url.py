@@ -111,5 +111,5 @@ def join_url(base: str, *, segments: list[str]) -> str:
         raise ValidationError("base must be a non-empty URL")
 
     base = base.rstrip("/")
-    cleaned = [s.strip("/") for s in segments if s and s.strip("/")]
+    cleaned = [s.strip("/") for s in segments if s and s.strip().strip("/")]
     return base + ("/" + "/".join(cleaned) if cleaned else "")
