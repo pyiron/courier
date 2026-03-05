@@ -47,6 +47,16 @@ def normalize_base_url(
         )
 
     raw = address.strip()
+
+    # First, detect malformed URLs where a scheme is present but missing "//",
+    # e.g. "http:example.org". In such cases urlsplit(raw) yields a scheme
+    # but no netloc, so treat this as an invalid address instead of assuming
+    # it is a host-only string.
+    pre_parts = urlsplit(raw)
+    if pre_parts.scheme and not pre_parts.netloc and "://" not in raw:
+        raise InvalidAddressError(
+            "address appears to include a scheme but is malformed; expected 'scheme://host[:port]'"
+        )
     candidate = raw if "://" in raw else f"{default_scheme}://{raw}"
 
     parts = urlsplit(candidate)
