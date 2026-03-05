@@ -53,7 +53,9 @@ def normalize_base_url(
     # but no netloc, so treat this as an invalid address instead of assuming
     # it is a host-only string.
     pre_parts = urlsplit(raw)
-    if pre_parts.scheme and not pre_parts.netloc and "://" not in raw:
+    pre_scheme = pre_parts.scheme.lower()
+    allowed_schemes_lower = tuple(s.lower() for s in allowed_schemes)
+    if pre_scheme in allowed_schemes_lower and not pre_parts.netloc and "://" not in raw:
         raise InvalidAddressError(
             "address appears to include a scheme but is malformed; expected 'scheme://host[:port]'"
         )
