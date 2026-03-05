@@ -55,7 +55,11 @@ def normalize_base_url(
     pre_parts = urlsplit(raw)
     pre_scheme = pre_parts.scheme.lower()
     allowed_schemes_lower = tuple(s.lower() for s in allowed_schemes)
-    if pre_scheme in allowed_schemes_lower and not pre_parts.netloc and "://" not in raw:
+    if (
+        pre_scheme in allowed_schemes_lower
+        and not pre_parts.netloc
+        and "://" not in raw
+    ):
         raise InvalidAddressError(
             "address appears to include a scheme but is malformed; expected 'scheme://host[:port]'"
         )
