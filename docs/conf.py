@@ -75,7 +75,7 @@ copyright = (
 #
 # The short X.Y version.
 version_full = courier.__version__
-version = '.'.join(version_full.split('.')[:2])
+version = ".".join(version_full.split(".")[:2])
 # The full version, including alpha/beta/rc tags.
 release = version_full
 
