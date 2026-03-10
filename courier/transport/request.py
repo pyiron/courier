@@ -26,7 +26,7 @@ def _raise_for_status_with_body(resp: requests.Response) -> None:
     except requests.HTTPError as e:
         text = getattr(resp, "text", None)
         raise HttpError(
-            method=resp.request.method if resp.request else "HTTP",
+            method=(resp.request.method or "HTTP") if resp.request else "HTTP",
             url=resp.url,
             status_code=resp.status_code,
             message=str(e),
@@ -58,7 +58,7 @@ def read_json(resp: requests.Response) -> Any:
         return resp.json()
     except ValueError as e:
         raise HttpError(
-            method=resp.request.method if resp.request else "HTTP",
+            method=(resp.request.method or "HTTP") if resp.request else "HTTP",
             url=resp.url,
             status_code=resp.status_code,
             message="Failed to decode JSON response.",
