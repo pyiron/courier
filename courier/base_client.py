@@ -39,6 +39,8 @@ from courier.transport.url import normalize_base_url
 class BaseClient:
     """Internal base class for courier service clients."""
 
+    _ALLOWED_DEFAULT_SCHEMES: tuple[str, ...] = ("http", "https")
+
     def __init__(
         self,
         address: str,
@@ -52,9 +54,13 @@ class BaseClient:
         # NOTE: This class is intended for use by courier-internal service clients.
         # Store state privately and expose via properties.
         self._address = address
-        self._default_scheme = default_scheme
-        self._verify = verify
-        self._timeout = timeout
+        self._default_scheme = self._validate_default_scheme(default_scheme)
+
+        # validated through property setters
+        self._verify: bool | str
+        self.verify = verify
+        self._timeout: float | tuple[float, float]
+        self.timeout = timeout
 
         self._base_url = normalize_base_url(
             self._address, default_scheme=self._default_scheme
@@ -65,6 +71,58 @@ class BaseClient:
         # token is mutable; use the setter to keep session headers in sync
         self._token: str | None = None
         self.token = token
+
+    @classmethod
+    def _validate_default_scheme(cls, default_scheme: str) -> str:
+        if not default_scheme or not str(default_scheme).strip():
+            raise ValueError("default_scheme must be a non-empty string")
+        scheme = str(default_scheme).strip().lower()
+        if scheme not in cls._ALLOWED_DEFAULT_SCHEMES:
+            raise ValueError(
+                f"default_scheme must be one of {cls._ALLOWED_DEFAULT_SCHEMES}, got {default_scheme!r}"
+            )
+        return scheme
+
+    @staticmethod
+    def _validate_timeout(
+        timeout: float | tuple[float, float],
+    ) -> float | tuple[float, float]:
+        def _is_pos_number(x: object) -> bool:
+            return isinstance(x, (int, float)) and x > 0
+
+        if _is_pos_number(timeout):
+            return float(timeout)
+
+        if isinstance(timeout, tuple) and len(timeout) == 2:
+            connect, read = timeout
+            if not _is_pos_number(connect) or not _is_pos_number(read):
+                raise ValueError(
+                    "timeout tuple must be (connect_timeout, read_timeout) with both values > 0"
+                )
+            return (float(connect), float(read))
+
+        raise TypeError(
+            "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
+        )
+
+    @staticmethod
+    def _validate_verify(verify: bool | str) -> bool | str:
+        if isinstance(verify, bool):
+            return verify
+        if isinstance(verify, str):
+            if not verify.strip():
+                raise ValueError("verify must not be an empty string")
+            return verify
+        raise TypeError("verify must be a bool or a non-empty string")
+
+    @staticmethod
+    def _normalize_token(token: str | None) -> str | None:
+        if token is None:
+            return None
+        if not isinstance(token, str):
+            raise TypeError("token must be a string or None")
+        stripped = token.strip()
+        return stripped or None
 
     @property
     def address(self) -> str:
@@ -88,10 +146,9 @@ class BaseClient:
 
     @token.setter
     def token(self, token: str | None) -> None:
-        self._token = token
+        self._token = self._normalize_token(token)
 
         # Keep the session's Authorization header in sync with the current token.
-        # bearer_headers() returns an empty dict if token is None/blank.
         self._session.headers.pop("Authorization", None)
         self._session.headers.update(bearer_headers(self._token))
 
@@ -101,7 +158,7 @@ class BaseClient:
 
     @verify.setter
     def verify(self, verify: bool | str) -> None:
-        self._verify = verify
+        self._verify = self._validate_verify(verify)
 
     @property
     def timeout(self) -> float | tuple[float, float]:
@@ -109,7 +166,7 @@ class BaseClient:
 
     @timeout.setter
     def timeout(self, timeout: float | tuple[float, float]) -> None:
-        self._timeout = timeout
+        self._timeout = self._validate_timeout(timeout)
 
     def _request(
         self,

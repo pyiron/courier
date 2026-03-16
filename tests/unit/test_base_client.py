@@ -97,6 +97,30 @@ class TestBaseClientInit(unittest.TestCase):
         self.assertIsNone(s.headers.get("Authorization"))
 
 
+class TestBaseClientValidation(unittest.TestCase):
+    def test_timeout_must_be_positive(self):
+        with self.assertRaises(ValueError):
+            _ = BaseClient("example.org", timeout=0)
+        with self.assertRaises(ValueError):
+            _ = BaseClient("example.org", timeout=-1)
+        with self.assertRaises(ValueError):
+            _ = BaseClient("example.org", timeout=(1, 0))
+
+    def test_timeout_type_is_checked(self):
+        with self.assertRaises(TypeError):
+            _ = BaseClient("example.org", timeout=(1, 2, 3))
+
+    def test_default_scheme_is_validated(self):
+        with self.assertRaises(ValueError):
+            _ = BaseClient("example.org", default_scheme="ftp")
+
+    def test_verify_must_be_bool_or_nonempty_string(self):
+        with self.assertRaises(ValueError):
+            _ = BaseClient("example.org", verify="")
+        with self.assertRaises(TypeError):
+            _ = BaseClient("example.org", verify=object())
+
+
 class TestBaseClientRequest(unittest.TestCase):
     def test_request_passes_through_common_arguments(self):
         s = _FakeSession()
