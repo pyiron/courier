@@ -175,6 +175,41 @@ class BaseClient:
     def timeout(self, timeout: float | tuple[float, float]) -> None:
         self._timeout = self._validate_timeout(timeout)
 
+    def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        json: Any | None = None,
+        data: Any | None = None,
+        files: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        stream: bool = False,
+    ) -> requests.Response:
+        """Perform a raw HTTP request.
+
+        This is a small, public escape hatch for advanced use cases where a
+        service-specific resource does not yet expose a dedicated method.
+
+        Notes
+        -----
+        - This method does not interpret the response. Use `courier.transport.request`
+          helpers (or `Response.raise_for_status`) as needed.
+        - Courier-internal resources may use the private convenience wrappers
+          (`_get_text`, `_get_json`, ...).
+        """
+        return self._request(
+            method,
+            url,
+            params=params,
+            json=json,
+            data=data,
+            files=files,
+            headers=headers,
+            stream=stream,
+        )
+
     def _request(
         self,
         method: str,
