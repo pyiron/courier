@@ -79,6 +79,18 @@ class TestBaseClientInit(unittest.TestCase):
         _ = BaseClient("example.org", token="  abc  ", session=s)
         self.assertEqual(s.headers.get("Authorization"), "Bearer abc")
 
+    def test_token_is_mutable_and_updates_authorization_header(self):
+        s = _FakeSession()
+        c = BaseClient("example.org", token="abc", session=s)
+        c.token = "def"
+        self.assertEqual(s.headers.get("Authorization"), "Bearer def")
+
+    def test_token_can_be_cleared_and_removes_authorization_header(self):
+        s = _FakeSession()
+        c = BaseClient("example.org", token="abc", session=s)
+        c.token = None
+        self.assertIsNone(s.headers.get("Authorization"))
+
     def test_no_authorization_header_when_token_is_none(self):
         s = _FakeSession()
         _ = BaseClient("example.org", token=None, session=s)

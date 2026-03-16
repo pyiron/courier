@@ -49,18 +49,67 @@ class BaseClient:
         timeout: float | tuple[float, float] = 30.0,
         session: requests.Session | None = None,
     ) -> None:
-        self.address = address
-        self.token = token
-        self.default_scheme = default_scheme
-        self.verify = verify
-        self.timeout = timeout
+        # NOTE: This class is intended for use by courier-internal service clients.
+        # Store state privately and expose via properties.
+        self._address = address
+        self._default_scheme = default_scheme
+        self._verify = verify
+        self._timeout = timeout
 
-        self.base_url = normalize_base_url(
-            self.address, default_scheme=self.default_scheme
+        self._base_url = normalize_base_url(
+            self._address, default_scheme=self._default_scheme
         )
 
-        self.session = session if session is not None else create_session()
-        self.session.headers.update(bearer_headers(self.token))
+        self._session = session if session is not None else create_session()
+
+        # token is mutable; use the setter to keep session headers in sync
+        self._token: str | None = None
+        self.token = token
+
+    @property
+    def address(self) -> str:
+        return self._address
+
+    @property
+    def base_url(self) -> str:
+        return self._base_url
+
+    @property
+    def default_scheme(self) -> str:
+        return self._default_scheme
+
+    @property
+    def session(self) -> requests.Session:
+        return self._session
+
+    @property
+    def token(self) -> str | None:
+        return self._token
+
+    @token.setter
+    def token(self, token: str | None) -> None:
+        self._token = token
+
+        # Keep the session's Authorization header in sync with the current token.
+        # bearer_headers() returns an empty dict if token is None/blank.
+        self._session.headers.pop("Authorization", None)
+        self._session.headers.update(bearer_headers(self._token))
+
+    @property
+    def verify(self) -> bool | str:
+        return self._verify
+
+    @verify.setter
+    def verify(self, verify: bool | str) -> None:
+        self._verify = verify
+
+    @property
+    def timeout(self) -> float | tuple[float, float]:
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, timeout: float | tuple[float, float]) -> None:
+        self._timeout = timeout
 
     def _request(
         self,
