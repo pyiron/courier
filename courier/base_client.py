@@ -1,4 +1,30 @@
-# base class for clients supported by courier
+"""Internal HTTP client base class.
+
+`BaseClient` is intended as a parent class for service-specific courier clients
+(e.g. Ontodocker). It centralizes a small set of shared concerns:
+
+- normalization of the user-provided server address into a base URL
+- creation/configuration of a `requests.Session`
+- convenience helpers for common request/response patterns
+
+This class is not meant to be instantiated directly by end users; public user
+APIs should be exposed through service clients built on top of this base.
+
+Parameters
+----------
+address
+    Server address as host[:port] or URL including scheme.
+token
+    Optional bearer token.
+default_scheme
+    Scheme used if `address` does not include one.
+verify
+    TLS verification passed to `requests` (True/False or path to CA bundle).
+timeout
+    Request timeout in seconds (float) or (connect, read) tuple.
+session
+    Optional externally managed requests session.
+"""
 
 from typing import Any
 
@@ -11,24 +37,7 @@ from courier.transport.url import normalize_base_url
 
 
 class BaseClient:
-    """
-    Base client providing shared HTTP behavior and address normalization.
-
-    Parameters
-    ----------
-    address
-        Server address as host[:port] or URL including scheme.
-    token
-        Optional bearer token.
-    default_scheme
-        Scheme used if `address` does not include one.
-    verify
-        TLS verification passed to `requests` (True/False or path to CA bundle).
-    timeout
-        Request timeout in seconds (float) or (connect, read) tuple.
-    session
-        Optional externally managed requests session.
-    """
+    """Internal base class for courier service clients."""
 
     def __init__(
         self,
