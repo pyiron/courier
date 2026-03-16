@@ -87,15 +87,22 @@ class BaseClient:
     def _validate_timeout(
         timeout: float | tuple[float, float],
     ) -> float | tuple[float, float]:
-        def _is_pos_number(x: object) -> bool:
-            return isinstance(x, (int, float)) and x > 0
-
-        if _is_pos_number(timeout):
+        if isinstance(timeout, (int, float)):
+            if timeout <= 0:
+                raise ValueError("timeout must be > 0")
             return float(timeout)
 
-        if isinstance(timeout, tuple) and len(timeout) == 2:
+        if isinstance(timeout, tuple):
+            if len(timeout) != 2:
+                raise TypeError(
+                    "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
+                )
             connect, read = timeout
-            if not _is_pos_number(connect) or not _is_pos_number(read):
+            if not isinstance(connect, (int, float)) or not isinstance(read, (int, float)):
+                raise TypeError(
+                    "timeout tuple must be (connect_timeout, read_timeout) with numeric values"
+                )
+            if connect <= 0 or read <= 0:
                 raise ValueError(
                     "timeout tuple must be (connect_timeout, read_timeout) with both values > 0"
                 )
