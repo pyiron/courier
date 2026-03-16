@@ -126,7 +126,7 @@ class TestBaseClientRequest(unittest.TestCase):
         s = _FakeSession()
         c = BaseClient("example.org", verify=False, timeout=(1.0, 2.0), session=s)
 
-        _ = c._request(
+        _ = c.request(
             "POST",
             "https://example.org/api",
             params={"a": 1},
