@@ -98,7 +98,9 @@ class BaseClient:
                     "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
                 )
             connect, read = timeout
-            if not isinstance(connect, (int, float)) or not isinstance(read, (int, float)):
+            if not isinstance(connect, (int, float)) or not isinstance(
+                read, (int, float)
+            ):
                 raise TypeError(
                     "timeout tuple must be (connect_timeout, read_timeout) with numeric values"
                 )
