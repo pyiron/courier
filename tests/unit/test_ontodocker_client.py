@@ -147,16 +147,34 @@ class TestDatasetsResource(unittest.TestCase):
         self.assertEqual(s.calls[0]["method"], "PUT")
         self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
 
+    def test_delete_validates_name(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.delete("")
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.delete("   ")
+
     def test_delete_uses_delete(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="deleted", request=_FakeRequest("DELETE"))
         c = OntodockerClient("https://example.org", session=s)
 
-        out = c.datasets.delete("ds")
+        out = c.datasets.delete(" ds ")
 
         self.assertEqual(out, "deleted")
         self.assertEqual(s.calls[0]["method"], "DELETE")
         self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
+
+    def test_download_turtle_validates_name_and_filename(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.download_turtle("", filename=None)
+
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.download_turtle("ds", filename="   ")
 
     def test_download_turtle_writes_file_when_requested(self):
         s = _FakeSession()
@@ -169,6 +187,16 @@ class TestDatasetsResource(unittest.TestCase):
 
             self.assertEqual(out, "@prefix : <x> .")
             self.assertEqual(path.read_text(encoding="utf-8"), "@prefix : <x> .")
+
+    def test_upload_turtlefile_validates_inputs(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.upload_turtlefile("", "x.ttl")
+
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.upload_turtlefile("ds", "")
 
     def test_upload_turtlefile_uses_post_with_file_field(self):
         s = _FakeSession()
@@ -202,6 +230,83 @@ class TestDatasetsResource(unittest.TestCase):
             self.assertRaises(ImportError),
         ):
             _ = c.datasets.upload_graph("ds", object())
+
+    def test_upload_graph_validates_name_and_filename(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        fake_rdflib = types.ModuleType("rdflib")
+
+        class _FakeGraph:
+            pass
+
+        fake_rdflib.Graph = _FakeGraph
+
+        with mock.patch.dict(sys.modules, {"rdflib": fake_rdflib}):
+            with self.assertRaises(ValidationError):
+                _ = c.datasets.upload_graph("", _FakeGraph())
+
+            with self.assertRaises(ValidationError):
+                _ = c.datasets.upload_graph("ds", _FakeGraph(), filename="   ")
+
+    def test_upload_graph_validates_graph_type(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        fake_rdflib = types.ModuleType("rdflib")
+
+        class _FakeGraph:
+            pass
+
+        fake_rdflib.Graph = _FakeGraph
+
+        with (
+            mock.patch.dict(sys.modules, {"rdflib": fake_rdflib}),
+            self.assertRaises(ValidationError),
+        ):
+            _ = c.datasets.upload_graph("ds", object())
+
+    def test_upload_graph_wraps_serialize_errors(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        fake_rdflib = types.ModuleType("rdflib")
+
+        class _FakeGraph:
+            def serialize(self, *, format: str):
+                raise RuntimeError("boom")
+
+        fake_rdflib.Graph = _FakeGraph
+
+        with (
+            mock.patch.dict(sys.modules, {"rdflib": fake_rdflib}),
+            self.assertRaises(ValidationError),
+        ):
+            _ = c.datasets.upload_graph("ds", _FakeGraph())
+
+    def test_upload_graph_serializes_bytes_and_posts(self):
+        s = _FakeSession()
+        s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
+        c = OntodockerClient("https://example.org", session=s)
+
+        fake_rdflib = types.ModuleType("rdflib")
+
+        class _FakeGraph:
+            def serialize(self, *, format: str):
+                self.format = format
+                return b"@prefix : <x> ."
+
+        fake_rdflib.Graph = _FakeGraph
+
+        with mock.patch.dict(sys.modules, {"rdflib": fake_rdflib}):
+            out = c.datasets.upload_graph("ds", _FakeGraph())
+
+        self.assertEqual(out, "ok")
+        self.assertEqual(s.calls[0]["method"], "POST")
+        self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
+        posted = s.calls[0]["files"]["file"]
+        self.assertEqual(posted[0], "graph.ttl")
+        self.assertEqual(posted[2], "text/turtle")
 
     def test_upload_graph_serializes_and_posts(self):
         s = _FakeSession()
@@ -250,6 +355,16 @@ class TestSparqlResource(unittest.TestCase):
             "https://example.org/api/v1/jena/ds/sparql",
         )
 
+    def test_query_raw_validates_dataset_and_query(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        with self.assertRaises(ValidationError):
+            _ = c.sparql.query_raw("", "SELECT * WHERE {}")
+
+        with self.assertRaises(ValidationError):
+            _ = c.sparql.query_raw("ds", "")
+
     def test_query_raw_uses_get_with_query_param_and_accept_header(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="{}", request=_FakeRequest("GET"))
@@ -271,6 +386,16 @@ class TestSparqlResource(unittest.TestCase):
             s.calls[0]["headers"],
             {"Accept": "application/sparql-results+json"},
         )
+
+    def test_query_df_validates_query_and_columns(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        with self.assertRaises(ValidationError):
+            _ = c.sparql.query_df("ds", "", columns=["a"])
+
+        with self.assertRaises(ValidationError):
+            _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=[])
 
     def test_query_df_uses_sparqlwrapper_and_adds_auth_header_when_token_set(self):
         s = _FakeSession()
