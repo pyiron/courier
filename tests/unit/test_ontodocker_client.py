@@ -6,7 +6,6 @@ from tempfile import TemporaryDirectory
 from unittest import mock
 
 import pandas as pd
-import requests
 
 from courier.exceptions import ValidationError
 from courier.services.ontodocker import OntodockerClient
@@ -198,9 +197,11 @@ class TestDatasetsResource(unittest.TestCase):
                 raise ImportError("no rdflib")
             return real_import(name, globals, locals, fromlist, level)
 
-        with mock.patch("builtins.__import__", side_effect=_patched_import):
-            with self.assertRaises(ImportError):
-                _ = c.datasets.upload_graph("ds", object())
+        with (
+            mock.patch("builtins.__import__", side_effect=_patched_import),
+            self.assertRaises(ImportError),
+        ):
+            _ = c.datasets.upload_graph("ds", object())
 
     def test_upload_graph_serializes_and_posts(self):
         s = _FakeSession()
