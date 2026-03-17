@@ -223,7 +223,9 @@ class TestDatasetsResource(unittest.TestCase):
                 out = c.datasets.upload_graph("ds", g, filename=out_path)
 
                 self.assertEqual(out, "ok")
-                self.assertEqual(out_path.read_text(encoding="utf-8"), "@prefix : <x> .")
+                self.assertEqual(
+                    out_path.read_text(encoding="utf-8"), "@prefix : <x> ."
+                )
 
         self.assertEqual(s.calls[0]["method"], "POST")
         self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
