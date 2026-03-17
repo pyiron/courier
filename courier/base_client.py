@@ -1,14 +1,14 @@
 """Internal HTTP client base class.
 
-`BaseClient` is intended as a parent class for service-specific courier clients
-(e.g. Ontodocker). It centralizes a small set of shared concerns:
+`HttpClient` is intended as a parent class for HTTP-based, service-specific courier
+clients (e.g. Ontodocker). It centralizes a small set of shared concerns:
 
 - normalization of the user-provided server address into a base URL
 - creation/configuration of a `requests.Session`
 - convenience helpers for common request/response patterns
 
 This class is not meant to be instantiated directly by end users; public user
-APIs should be exposed through service clients built on top of this base.
+APIs should be exposed through service clients built on top of this client.
 
 Parameters
 ----------
@@ -36,8 +36,8 @@ from courier.transport.session import create_session
 from courier.transport.url import normalize_base_url
 
 
-class BaseClient:
-    """Internal base class for courier service clients."""
+class HttpClient:
+    """Internal HTTP client for http-based courier service clients."""
 
     _ALLOWED_DEFAULT_SCHEMES: tuple[str, ...] = ("http", "https")
 

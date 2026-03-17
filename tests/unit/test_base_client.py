@@ -2,7 +2,11 @@ import unittest
 
 import requests
 
-from courier.base_client import BaseClient
+from courier.base_client import HttpClient
+
+
+# Backwards-compat in this test module only (was BaseClient before rename)
+BaseClient = HttpClient
 from courier.exceptions import HttpError
 
 
@@ -58,7 +62,7 @@ class _FakeSession:
         return self.response
 
 
-class TestBaseClientInit(unittest.TestCase):
+class TestHttpClientInit(unittest.TestCase):
     def test_base_url_is_normalized(self):
         s = _FakeSession()
         c = BaseClient("example.org", session=s)
@@ -97,7 +101,7 @@ class TestBaseClientInit(unittest.TestCase):
         self.assertIsNone(s.headers.get("Authorization"))
 
 
-class TestBaseClientValidation(unittest.TestCase):
+class TestHttpClientValidation(unittest.TestCase):
     def test_timeout_must_be_positive(self):
         with self.assertRaises(ValueError):
             _ = BaseClient("example.org", timeout=0)
@@ -121,7 +125,7 @@ class TestBaseClientValidation(unittest.TestCase):
             _ = BaseClient("example.org", verify=object())
 
 
-class TestBaseClientRequest(unittest.TestCase):
+class TestHttpClientRequest(unittest.TestCase):
     def test_request_passes_through_common_arguments(self):
         s = _FakeSession()
         c = BaseClient("example.org", verify=False, timeout=(1.0, 2.0), session=s)
@@ -151,7 +155,7 @@ class TestBaseClientRequest(unittest.TestCase):
         self.assertTrue(call["stream"])
 
 
-class TestBaseClientConvenienceMethods(unittest.TestCase):
+class TestHttpClientConvenienceMethods(unittest.TestCase):
     def test_get_text_returns_response_text(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="hello")
