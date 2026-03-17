@@ -210,7 +210,9 @@ class DatasetsResource:
             raise ValidationError("dataset name must be non-empty")
 
         if filename is not None and isinstance(filename, str) and not filename.strip():
-            raise ValidationError("filename must be a non-empty path (str/Path) or None")
+            raise ValidationError(
+                "filename must be a non-empty path (str/Path) or None"
+            )
 
         try:
             import rdflib  # type: ignore[import-not-found]
