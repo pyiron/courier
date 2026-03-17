@@ -1,18 +1,24 @@
 """Dataset CRUD operations for Ontodocker."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from courier.exceptions import ValidationError
 from courier.transport.url import join_url
+
+if TYPE_CHECKING:
+    from courier.services.ontodocker.client import OntodockerClient
 
 
 @dataclass
 class DatasetsResource:
     """Ontodocker dataset CRUD operations."""
 
-    client: "OntodockerClient"
+    client: OntodockerClient
 
     def list(self) -> list[str]:
         """List dataset names.
@@ -106,10 +112,8 @@ class DatasetsResource:
         if not name or not name.strip():
             raise ValidationError("dataset name must be non-empty")
 
-        if filename is not None:
-            # Guard against accidental "" or "   "
-            if isinstance(filename, str) and not filename.strip():
-                raise ValidationError("filename must be a non-empty path (str) or None")
+        if filename is not None and isinstance(filename, str) and not filename.strip():
+            raise ValidationError("filename must be a non-empty path (str) or None")
 
         url = join_url(
             self.client.base_url, segments=["api", "v1", "jena", name.strip()]

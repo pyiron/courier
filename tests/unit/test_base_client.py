@@ -3,10 +3,10 @@ import unittest
 import requests
 
 from courier.base_client import HttpClient
+from courier.exceptions import HttpError
 
 # Backwards-compat in this test module only (was BaseClient before rename)
 BaseClient = HttpClient
-from courier.exceptions import HttpError
 
 
 class _FakeRequest:

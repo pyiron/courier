@@ -1,20 +1,26 @@
 """Endpoint discovery for Ontodocker."""
 
-from dataclasses import dataclass
+from __future__ import annotations
 
-from courier.transport.url import join_url
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
 from courier.services.ontodocker._compat import (
     extract_dataset_names,
     parse_endpoints_response,
 )
 from courier.services.ontodocker.models import EndpointInfo
+from courier.transport.url import join_url
+
+if TYPE_CHECKING:
+    from courier.services.ontodocker.client import OntodockerClient
 
 
 @dataclass
 class EndpointsResource:
     """Ontodocker endpoint discovery and normalization."""
 
-    client: "OntodockerClient"
+    client: OntodockerClient
     rectify_legacy: bool = True
 
     def list_raw(self) -> list[str]:

@@ -1,20 +1,26 @@
 """SPARQL querying for Ontodocker datasets."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from SPARQLWrapper import SPARQLWrapper
 
 from courier.exceptions import ValidationError
-from courier.transport.url import join_url
 from courier.services.ontodocker._compat import make_dataframe
+from courier.transport.url import join_url
+
+if TYPE_CHECKING:
+    from courier.services.ontodocker.client import OntodockerClient
 
 
 @dataclass
 class SparqlResource:
     """SPARQL operations for Ontodocker."""
 
-    client: "OntodockerClient"
+    client: OntodockerClient
 
     def endpoint(self, dataset: str) -> str:
         """Build the SPARQL endpoint URL for a dataset.
