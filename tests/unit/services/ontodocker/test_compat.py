@@ -147,11 +147,11 @@ class TestMakeDataframe(unittest.TestCase):
         expected = pd.DataFrame([["1", "2"]], columns=["a", "b"])
         pdt.assert_frame_equal(df, expected)
 
-    def test_missing_variable_in_binding_becomes_null(self):
+    def test_missing_variable_in_binding_yields_none(self):
         result = self._make_result(
             ["a", "b"],
             [{"a": {"value": "1"}}],  # "b" is missing
         )
         df = _compat.make_dataframe(result, ["a", "b"])
-        self.assertEqual(df.iloc[0]["a"], "1")
-        self.assertTrue(pd.isna(df.iloc[0]["b"]))
+        expected = pd.DataFrame([["1", None]], columns=["a", "b"])
+        pdt.assert_frame_equal(df, expected)
