@@ -107,8 +107,7 @@ def extract_dataset_names(sparql_endpoints: list[str]) -> list[str]:
 
 
 def make_dataframe(result: dict, columns: list[str]) -> pd.DataFrame:
-    """
-    Convert a SPARQL JSON result into a pandas DataFrame.
+    """Convert a SPARQL JSON result into a pandas DataFrame.
 
     Parameters
     ----------
@@ -130,10 +129,10 @@ def make_dataframe(result: dict, columns: list[str]) -> pd.DataFrame:
     rows: list[list[str | None]] = []
     for binding in result["results"]["bindings"]:
         row: list[str | None] = []
+<<<<<<< HEAD
         for column in columns:
             value = binding.get(column)
             row.append(value.get("value") if isinstance(value, dict) else None)
         rows.append(row)
 
-    df = pd.DataFrame(rows, columns=columns)
-    return df
+    return pd.DataFrame(rows, columns=columns)
