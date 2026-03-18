@@ -354,47 +354,37 @@ class TestSparqlResource(unittest.TestCase):
         with self.assertRaises(ValidationError):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=[])
 
-    def test_query_df_uses_sparqlwrapper_and_adds_auth_header_when_token_set(self):
+    def test_query_df_uses_get_with_query_param_and_accept_header(self):
         s = _FakeSession()
+        s.response = _FakeResponse(
+            text=(
+                "{\"results\": {\"bindings\": "
+                "[{\"a\": {\"value\": \"1\"}, \"b\": {\"value\": \"2\"}}]}}"
+            ),
+            request=_FakeRequest("GET"),
+        )
         c = OntodockerClient("https://example.org", token="abc", session=s)
-        wrappers: list[object] = []
 
-        class _FakeSparqlWrapper:
-            def __init__(self, endpoint: str):
-                self.endpoint = endpoint
-                self.headers: dict[str, str] = {}
-                self.query = None
-                self.return_format = None
-                wrappers.append(self)
-
-            def setReturnFormat(self, fmt: str):
-                self.return_format = fmt
-
-            def addCustomHttpHeader(self, key: str, value: str):
-                self.headers[key] = value
-
-            def setQuery(self, query: str):
-                self.query = query
-
-            def queryAndConvert(self):
-                return {
-                    "results": {
-                        "bindings": [
-                            {"a": {"value": "1"}, "b": {"value": "2"}},
-                        ]
-                    }
-                }
-
-        with mock.patch(
-            "courier.services.ontodocker.sparql.SPARQLWrapper", _FakeSparqlWrapper
-        ):
-            df = c.sparql.query_df("ds", "SELECT ?a ?b WHERE {}", columns=["a", "b"])
+        df = c.sparql.query_df("ds", "SELECT ?a ?b WHERE {}", columns=["a", "b"])
 
         self.assertIsInstance(df, pd.DataFrame)
         self.assertEqual(list(df.columns), ["a", "b"])
         self.assertEqual(df.iloc[0].tolist(), ["1", "2"])
-        self.assertEqual(len(wrappers), 1)
-        self.assertEqual(wrappers[0].headers["Authorization"], "Bearer abc")
+        self.assertEqual(s.calls[0]["method"], "GET")
+        self.assertEqual(
+            s.calls[0]["url"],
+            "https://example.org/api/v1/jena/ds/sparql",
+        )
+        self.assertEqual(
+            s.calls[0]["params"],
+            {"query": "SELECT ?a ?b WHERE {}"},
+        )
+        self.assertEqual(
+            s.calls[0]["headers"],
+            {"Accept": "application/sparql-results+json"},
+        )
+        # token is handled by HttpClient via session headers, not per-request
+        self.assertEqual(s.headers.get("Authorization"), "Bearer abc")
 
 
 if __name__ == "__main__":
