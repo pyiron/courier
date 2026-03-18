@@ -358,8 +358,8 @@ class TestSparqlResource(unittest.TestCase):
         s = _FakeSession()
         s.response = _FakeResponse(
             text=(
-                "{\"results\": {\"bindings\": "
-                "[{\"a\": {\"value\": \"1\"}, \"b\": {\"value\": \"2\"}}]}}"
+                '{"results": {"bindings": '
+                '[{"a": {"value": "1"}, "b": {"value": "2"}}]}}'
             ),
             request=_FakeRequest("GET"),
         )
