@@ -138,10 +138,11 @@ class TestMakeDataframe(unittest.TestCase):
         self.assertEqual(len(df), 2)
         self.assertEqual(list(df["x"]), ["1", "2"])
 
-    def test_missing_variable_in_binding_raises_value_error(self):
+    def test_missing_variable_in_binding_yields_none(self):
         result = self._make_result(
             ["a", "b"],
             [{"a": {"value": "1"}}],  # "b" is missing
         )
-        with self.assertRaises(ValueError):
-            _compat.make_dataframe(result, ["a", "b"])
+        df = _compat.make_dataframe(result, ["a", "b"])
+        expected = pd.DataFrame([["1", None]], columns=["a", "b"])
+        pdt.assert_frame_equal(df, expected)
