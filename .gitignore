@@ -15,4 +15,4 @@ core.*
 \#*#
 .dir-locals.el
 _version.py
-jupterhub.log
+jupyterlab.log
