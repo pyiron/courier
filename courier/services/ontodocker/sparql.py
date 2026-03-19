@@ -118,7 +118,9 @@ class SparqlResource:
             raise ValidationError("dataset must be non-empty")
         if not query or not query.strip():
             raise ValidationError("query must be non-empty")
-        if not columns:
+        if not columns or any(
+            not isinstance(column, str) or not column.strip() for column in columns
+        ):
             raise ValidationError("columns must be a non-empty list of strings")
 
         text = self.query_raw(
