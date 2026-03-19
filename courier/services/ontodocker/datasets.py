@@ -112,7 +112,7 @@ class DatasetsResource:
         if not name or not name.strip():
             raise ValidationError("dataset name must be non-empty")
 
-        if filename is not None and isinstance(filename, str) and not filename.strip():
+        if isinstance(filename, str) and not filename.strip():
             raise ValidationError("filename must be a non-empty path (str) or None")
 
         url = join_url(
@@ -209,7 +209,7 @@ class DatasetsResource:
         if not name or not name.strip():
             raise ValidationError("dataset name must be non-empty")
 
-        if filename is not None and isinstance(filename, str) and not filename.strip():
+        if isinstance(filename, str) and not filename.strip():
             raise ValidationError(
                 "filename must be a non-empty path (str/Path) or None"
             )
