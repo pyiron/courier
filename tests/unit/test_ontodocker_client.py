@@ -392,10 +392,47 @@ class TestSparqlResource(unittest.TestCase):
         c = OntodockerClient("https://example.org", session=s)
 
         with self.assertRaises(ValidationError):
+            _ = c.sparql.query_df("", "SELECT ?a WHERE {}", columns=["a"])
+
+        with self.assertRaises(ValidationError):
             _ = c.sparql.query_df("ds", "", columns=["a"])
 
         with self.assertRaises(ValidationError):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=[])
+
+    def test_query_df_raises_value_error_on_invalid_json(self):
+        s = _FakeSession()
+        s.response = _FakeResponse(text="not json", request=_FakeRequest("GET"))
+        c = OntodockerClient("https://example.org", session=s)
+
+        with self.assertRaisesRegex(ValueError, "Failed to decode SPARQL results JSON"):
+            _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=["a"])
+
+    def test_query_df_strips_dataset_and_maps_missing_bindings_to_none(self):
+        s = _FakeSession()
+        s.response = _FakeResponse(
+            text=(
+                '{"results": {"bindings": ['
+                '{"a": {"value": "1"}}, '
+                '{"b": {"value": "2"}}'
+                "]}}"
+            ),
+            request=_FakeRequest("GET"),
+        )
+        c = OntodockerClient("https://example.org", session=s)
+
+        df = c.sparql.query_df(" ds ", "SELECT ?a ?b WHERE {}", columns=["a", "b"])
+
+        self.assertIsInstance(df, pd.DataFrame)
+        self.assertEqual(list(df.columns), ["a", "b"])
+        self.assertEqual(df.iloc[0]["a"], "1")
+        self.assertTrue(pd.isna(df.iloc[0]["b"]))
+        self.assertTrue(pd.isna(df.iloc[1]["a"]))
+        self.assertEqual(df.iloc[1]["b"], "2")
+        self.assertEqual(
+            s.calls[0]["url"],
+            "https://example.org/api/v1/jena/ds/sparql",
+        )
 
     def test_query_df_uses_get_with_query_param_and_accept_header(self):
         s = _FakeSession()
