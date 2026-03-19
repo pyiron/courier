@@ -231,6 +231,23 @@ class TestDatasetsResource(unittest.TestCase):
         ):
             _ = c.datasets.upload_graph("ds", object())
 
+    def test_upload_graph_propagates_non_import_rdflib_failures(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        real_import = __import__
+
+        def _patched_import(name, globals=None, locals=None, fromlist=(), level=0):
+            if name == "rdflib":
+                raise RuntimeError("rdflib init failed")
+            return real_import(name, globals, locals, fromlist, level)
+
+        with (
+            mock.patch("builtins.__import__", side_effect=_patched_import),
+            self.assertRaisesRegex(RuntimeError, "rdflib init failed"),
+        ):
+            _ = c.datasets.upload_graph("ds", object())
+
     def test_upload_graph_validates_name_and_filename(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
