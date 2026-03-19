@@ -216,7 +216,7 @@ class DatasetsResource:
 
         try:
             import rdflib  # type: ignore[import-not-found]
-        except Exception as e:
+        except ImportError as e:
             raise ImportError("upload_graph requires rdflib.") from e
 
         if not isinstance(graph, rdflib.Graph):
