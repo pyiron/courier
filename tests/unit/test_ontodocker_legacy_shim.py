@@ -55,9 +55,8 @@ class TestOntodockerLegacyShim(unittest.TestCase):
         fake_client.datasets.download_turtle.return_value = "ttl-content"
 
         with (
-            TemporaryDirectory() as tmpdir, mock.patch(
-                "courier.ontodocker.OntodockerClient", return_value=fake_client
-            ),
+            TemporaryDirectory() as tmpdir,
+            mock.patch("courier.ontodocker.OntodockerClient", return_value=fake_client),
             mock.patch("courier.ontodocker.os.getcwd", return_value=tmpdir),
             warnings.catch_warnings(record=True) as w,
         ):
