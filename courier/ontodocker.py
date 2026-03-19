@@ -102,7 +102,7 @@ def download_dataset_as_turtle_file(
 
     if turtlefile_name is None:
         cwd = os.getcwd()
-        turtlefile_name = f"{cwd}/{dataset_name.strip()}.ttl"
+        turtlefile_name = os.path.join(cwd, f"{dataset_name.strip()}.ttl")
         warnings.warn(
             "No path/filename to save the turtle file to was explicitly"
             f" provided. It is saved under {turtlefile_name}",
