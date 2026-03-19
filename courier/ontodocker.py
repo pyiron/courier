@@ -164,10 +164,10 @@ def upload_turtlefile(
     address = _validate_host_address(address)
 
     if not dataset_name or not dataset_name.strip():
-        raise ValueError("datset_name must be non-empty")
+        raise ValueError("dataset_name must be non-empty")
 
     if turtlefile is None:
-        raise ValueError("A turtlefile mut be provided.")
+        raise ValueError("A turtlefile must be provided.")
 
     client = OntodockerClient(
         address,
@@ -193,7 +193,7 @@ def delete_dataset(
     address = _validate_host_address(address)
 
     if not dataset_name or not dataset_name.strip():
-        raise ValueError("datset_name must be non-empty")
+        raise ValueError("dataset_name must be non-empty")
 
     client = OntodockerClient(
         address,
