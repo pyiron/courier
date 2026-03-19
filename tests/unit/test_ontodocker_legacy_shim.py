@@ -1,5 +1,7 @@
+import os
 import unittest
 import warnings
+from tempfile import TemporaryDirectory
 from unittest import mock
 
 import pandas as pd
@@ -52,19 +54,22 @@ class TestOntodockerLegacyShim(unittest.TestCase):
         fake_client = mock.Mock()
         fake_client.datasets.download_turtle.return_value = "ttl-content"
 
-        with (
-            mock.patch("courier.ontodocker.OntodockerClient", return_value=fake_client),
-            mock.patch("courier.ontodocker.os.getcwd", return_value="/tmp"),
-            warnings.catch_warnings(record=True) as w,
-        ):
-            warnings.simplefilter("always")
-            out = courier.download_dataset_as_turtle_file("example.org", "ds")
+        with TemporaryDirectory() as tmpdir:
+            with (
+                mock.patch(
+                    "courier.ontodocker.OntodockerClient", return_value=fake_client
+                ),
+                mock.patch("courier.ontodocker.os.getcwd", return_value=tmpdir),
+                warnings.catch_warnings(record=True) as w,
+            ):
+                warnings.simplefilter("always")
+                out = courier.download_dataset_as_turtle_file("example.org", "ds")
 
         self.assertTrue(
             any(issubclass(warning.category, DeprecationWarning) for warning in w)
         )
         self.assertTrue(any(issubclass(warning.category, UserWarning) for warning in w))
-        self.assertEqual(out, "/tmp/ds.ttl")
+        self.assertEqual(out, os.path.join(tmpdir, "ds.ttl"))
         fake_client.datasets.download_turtle.assert_called_once()
 
     def test_send_query_delegates_to_sparql_query_df(self):
