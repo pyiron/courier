@@ -54,16 +54,16 @@ class TestOntodockerLegacyShim(unittest.TestCase):
 
         with (
             mock.patch("courier.ontodocker.OntodockerClient", return_value=fake_client),
-            self.assertWarns(UserWarning),
             mock.patch("courier.ontodocker.os.getcwd", return_value="/tmp"),
             warnings.catch_warnings(record=True) as w,
         ):
-            warnings.simplefilter("always", DeprecationWarning)
+            warnings.simplefilter("always")
             out = courier.download_dataset_as_turtle_file("example.org", "ds")
 
         self.assertTrue(
             any(issubclass(warning.category, DeprecationWarning) for warning in w)
         )
+        self.assertTrue(any(issubclass(warning.category, UserWarning) for warning in w))
         self.assertEqual(out, "/tmp/ds.ttl")
         fake_client.datasets.download_turtle.assert_called_once()
 
