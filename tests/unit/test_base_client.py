@@ -160,7 +160,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
         s.response = _FakeResponse(text="hello")
         c = BaseClient("example.org", session=s)
 
-        out = c._get_text("https://example.org/hello")
+        out = c.get_text("https://example.org/hello")
         self.assertEqual(out, "hello")
 
         self.assertEqual(len(s.calls), 1)
@@ -172,7 +172,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
         s.response = _FakeResponse(json_value={"ok": True})
         c = BaseClient("example.org", session=s)
 
-        out = c._get_json("https://example.org/json")
+        out = c.get_json("https://example.org/json")
         self.assertEqual(out, {"ok": True})
 
     def test_post_text_returns_response_text(self):
@@ -180,7 +180,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
         s.response = _FakeResponse(text="posted")
         c = BaseClient("example.org", session=s)
 
-        out = c._post_text("https://example.org/post", data="x")
+        out = c.post_text("https://example.org/post", data="x")
         self.assertEqual(out, "posted")
         self.assertEqual(s.calls[0]["method"], "POST")
 
@@ -189,7 +189,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
         s.response = _FakeResponse(text="put")
         c = BaseClient("example.org", session=s)
 
-        out = c._put_text("https://example.org/put", json={"a": 1})
+        out = c.put_text("https://example.org/put", json={"a": 1})
         self.assertEqual(out, "put")
         self.assertEqual(s.calls[0]["method"], "PUT")
 
@@ -198,7 +198,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
         s.response = _FakeResponse(text="deleted")
         c = BaseClient("example.org", session=s)
 
-        out = c._delete_text("https://example.org/del")
+        out = c.delete_text("https://example.org/del")
         self.assertEqual(out, "deleted")
         self.assertEqual(s.calls[0]["method"], "DELETE")
 
@@ -213,7 +213,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
         c = BaseClient("example.org", session=s)
 
         with self.assertRaises(HttpError) as ctx:
-            _ = c._get_text("https://example.org/missing")
+            _ = c.get_text("https://example.org/missing")
 
         self.assertEqual(ctx.exception.status_code, 404)
         self.assertEqual(ctx.exception.method, "GET")

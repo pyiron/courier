@@ -85,37 +85,34 @@ class HttpClient:
 
     @staticmethod
     def _validate_timeout(
-        timeout: float | tuple[float, float],
+        timeout: object,
     ) -> float | tuple[float, float]:
         if isinstance(timeout, (int, float)):
             if timeout <= 0:
                 raise ValueError("timeout must be > 0")
             return float(timeout)
 
-        if isinstance(timeout, tuple):
-            if len(timeout) != 2:
-                raise TypeError(
-                    "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
-                )
-            connect, read = timeout
-            if not isinstance(connect, (int, float)) or not isinstance(
-                read, (int, float)
-            ):
-                raise TypeError(
-                    "timeout tuple must be (connect_timeout, read_timeout) with numeric values"
-                )
-            if connect <= 0 or read <= 0:
-                raise ValueError(
-                    "timeout tuple must be (connect_timeout, read_timeout) with both values > 0"
-                )
-            return (float(connect), float(read))
-
-        raise TypeError(
-            "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
-        )
+        if not isinstance(timeout, tuple):
+            raise TypeError(
+                "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
+            )
+        if len(timeout) != 2:
+            raise TypeError(
+                "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
+            )
+        connect, read = timeout
+        if not isinstance(connect, (int, float)) or not isinstance(read, (int, float)):
+            raise TypeError(
+                "timeout tuple must be (connect_timeout, read_timeout) with numeric values"
+            )
+        if connect <= 0 or read <= 0:
+            raise ValueError(
+                "timeout tuple must be (connect_timeout, read_timeout) with both values > 0"
+            )
+        return (float(connect), float(read))
 
     @staticmethod
-    def _validate_verify(verify: bool | str) -> bool | str:
+    def _validate_verify(verify: object) -> bool | str:
         if isinstance(verify, bool):
             return verify
         if isinstance(verify, str):
@@ -128,8 +125,6 @@ class HttpClient:
     def _normalize_token(token: str | None) -> str | None:
         if token is None:
             return None
-        if not isinstance(token, str):
-            raise TypeError("token must be a string or None")
         stripped = token.strip()
         return stripped or None
 
@@ -198,8 +193,8 @@ class HttpClient:
         -----
         - This method does not interpret the response. Use `courier.transport.request`
           helpers (or `Response.raise_for_status`) as needed.
-        - Courier-internal resources may use the private convenience wrappers
-          (`_get_text`, `_get_json`, ...).
+        - For common request/response patterns, prefer the convenience methods
+          (`get_text`, `get_json`, `put_text`, `post_text`, `delete_text`).
         """
         return self._request(
             method,
@@ -237,7 +232,7 @@ class HttpClient:
             stream=stream,
         )
 
-    def _get_text(
+    def get_text(
         self,
         url: str,
         *,
@@ -246,7 +241,7 @@ class HttpClient:
     ) -> str:
         return read_text(self._request("GET", url, params=params, headers=headers))
 
-    def _get_json(
+    def get_json(
         self,
         url: str,
         *,
@@ -255,7 +250,7 @@ class HttpClient:
     ) -> Any:
         return read_json(self._request("GET", url, params=params, headers=headers))
 
-    def _put_text(
+    def put_text(
         self,
         url: str,
         *,
@@ -267,7 +262,7 @@ class HttpClient:
             self._request("PUT", url, data=data, json=json, headers=headers)
         )
 
-    def _post_text(
+    def post_text(
         self,
         url: str,
         *,
@@ -282,5 +277,7 @@ class HttpClient:
             )
         )
 
-    def _delete_text(self, url: str, *, headers: dict[str, str] | None = None) -> str:
+    def delete_text(
+        self, url: str, *, headers: dict[str, str] | None = None
+    ) -> str:
         return read_text(self._request("DELETE", url, headers=headers))
