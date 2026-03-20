@@ -203,6 +203,8 @@ class DatasetsResource:
         ValidationError
             If `name` is empty/blank, `graph` is not an rdflib.Graph, or `filename`
             is blank when provided.
+        Exception
+            Exceptions raised by ``graph.serialize(format="turtle")``.
         OSError
             If `filename` is provided and cannot be written.
         """
@@ -217,12 +219,7 @@ class DatasetsResource:
         if not isinstance(graph, rdflib.Graph):
             raise ValidationError("graph must be an rdflib.Graph instance")
 
-        try:
-            ttl = graph.serialize(format="turtle")
-        except Exception as e:
-            raise ValidationError(
-                "Failed to serialize graph to Turtle using rdflib.Graph.serialize(format='turtle')."
-            ) from e
+        ttl = graph.serialize(format="turtle")
 
         if isinstance(ttl, bytes):
             ttl_bytes = ttl

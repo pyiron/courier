@@ -232,7 +232,7 @@ class TestDatasetsResource(unittest.TestCase):
         with self.assertRaises(ValidationError):
             _ = c.datasets.upload_graph("ds", object())
 
-    def test_upload_graph_wraps_serialize_errors(self):
+    def test_upload_graph_propagates_serialize_errors(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
@@ -240,7 +240,7 @@ class TestDatasetsResource(unittest.TestCase):
             def serialize(self, *, format: str):
                 raise RuntimeError("boom")
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(RuntimeError, "boom"):
             _ = c.datasets.upload_graph("ds", _FakeGraph())
 
     def test_upload_graph_serializes_bytes_and_posts(self):
