@@ -7,6 +7,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import rdflib
+
 from courier.exceptions import ValidationError
 from courier.transport.url import join_url
 
@@ -165,7 +167,7 @@ class DatasetsResource:
     def upload_graph(
         self,
         name: str,
-        graph: object,
+        graph: rdflib.Graph,
         *,
         filename: str | Path | None = None,
         encoding: str = "utf-8",
@@ -201,8 +203,6 @@ class DatasetsResource:
         ValidationError
             If `name` is empty/blank, `graph` is not an rdflib.Graph, or `filename`
             is blank when provided.
-        ImportError
-            If `rdflib` is not installed.
         OSError
             If `filename` is provided and cannot be written.
         """
@@ -213,11 +213,6 @@ class DatasetsResource:
             raise ValidationError(
                 "filename must be a non-empty path (str/Path) or None"
             )
-
-        try:
-            import rdflib  # type: ignore[import-not-found]
-        except ImportError as e:
-            raise ImportError("upload_graph requires rdflib.") from e
 
         if not isinstance(graph, rdflib.Graph):
             raise ValidationError("graph must be an rdflib.Graph instance")

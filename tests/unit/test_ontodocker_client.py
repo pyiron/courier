@@ -1,11 +1,10 @@
-import sys
-import types
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import mock
 
 import pandas as pd
+import rdflib
 
 from courier.exceptions import ValidationError
 from courier.services.ontodocker import OntodockerClient
@@ -214,91 +213,34 @@ class TestDatasetsResource(unittest.TestCase):
         self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
         self.assertIn("file", s.calls[0]["files"])
 
-    def test_upload_graph_raises_import_error_if_rdflib_missing(self):
-        s = _FakeSession()
-        c = OntodockerClient("https://example.org", session=s)
-
-        real_import = __import__
-
-        def _patched_import(name, globals=None, locals=None, fromlist=(), level=0):
-            if name == "rdflib":
-                raise ImportError("no rdflib")
-            return real_import(name, globals, locals, fromlist, level)
-
-        with (
-            mock.patch("builtins.__import__", side_effect=_patched_import),
-            self.assertRaises(ImportError),
-        ):
-            _ = c.datasets.upload_graph("ds", object())
-
-    def test_upload_graph_propagates_non_import_rdflib_failures(self):
-        s = _FakeSession()
-        c = OntodockerClient("https://example.org", session=s)
-
-        real_import = __import__
-
-        def _patched_import(name, globals=None, locals=None, fromlist=(), level=0):
-            if name == "rdflib":
-                raise RuntimeError("rdflib init failed")
-            return real_import(name, globals, locals, fromlist, level)
-
-        with (
-            mock.patch("builtins.__import__", side_effect=_patched_import),
-            self.assertRaisesRegex(RuntimeError, "rdflib init failed"),
-        ):
-            _ = c.datasets.upload_graph("ds", object())
-
     def test_upload_graph_validates_name_and_filename(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
-        fake_rdflib = types.ModuleType("rdflib")
+        graph = rdflib.Graph()
 
-        class _FakeGraph:
-            pass
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.upload_graph("", graph)
 
-        fake_rdflib.Graph = _FakeGraph
-
-        with mock.patch.dict(sys.modules, {"rdflib": fake_rdflib}):
-            with self.assertRaises(ValidationError):
-                _ = c.datasets.upload_graph("", _FakeGraph())
-
-            with self.assertRaises(ValidationError):
-                _ = c.datasets.upload_graph("ds", _FakeGraph(), filename="   ")
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.upload_graph("ds", graph, filename="   ")
 
     def test_upload_graph_validates_graph_type(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
-        fake_rdflib = types.ModuleType("rdflib")
-
-        class _FakeGraph:
-            pass
-
-        fake_rdflib.Graph = _FakeGraph
-
-        with (
-            mock.patch.dict(sys.modules, {"rdflib": fake_rdflib}),
-            self.assertRaises(ValidationError),
-        ):
+        with self.assertRaises(ValidationError):
             _ = c.datasets.upload_graph("ds", object())
 
     def test_upload_graph_wraps_serialize_errors(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
-        fake_rdflib = types.ModuleType("rdflib")
-
-        class _FakeGraph:
+        class _FakeGraph(rdflib.Graph):
             def serialize(self, *, format: str):
                 raise RuntimeError("boom")
 
-        fake_rdflib.Graph = _FakeGraph
-
-        with (
-            mock.patch.dict(sys.modules, {"rdflib": fake_rdflib}),
-            self.assertRaises(ValidationError),
-        ):
+        with self.assertRaises(ValidationError):
             _ = c.datasets.upload_graph("ds", _FakeGraph())
 
     def test_upload_graph_serializes_bytes_and_posts(self):
@@ -306,17 +248,12 @@ class TestDatasetsResource(unittest.TestCase):
         s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
         c = OntodockerClient("https://example.org", session=s)
 
-        fake_rdflib = types.ModuleType("rdflib")
-
-        class _FakeGraph:
+        class _FakeGraph(rdflib.Graph):
             def serialize(self, *, format: str):
                 self.format = format
                 return b"@prefix : <x> ."
 
-        fake_rdflib.Graph = _FakeGraph
-
-        with mock.patch.dict(sys.modules, {"rdflib": fake_rdflib}):
-            out = c.datasets.upload_graph("ds", _FakeGraph())
+        out = c.datasets.upload_graph("ds", _FakeGraph())
 
         self.assertEqual(out, "ok")
         self.assertEqual(s.calls[0]["method"], "POST")
@@ -330,25 +267,18 @@ class TestDatasetsResource(unittest.TestCase):
         s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
         c = OntodockerClient("https://example.org", session=s)
 
-        fake_rdflib = types.ModuleType("rdflib")
-
-        class _FakeGraph:
+        class _FakeGraph(rdflib.Graph):
             def serialize(self, *, format: str):
                 self.format = format
                 return "@prefix : <x> ."
 
-        fake_rdflib.Graph = _FakeGraph
+        g = _FakeGraph()
+        with TemporaryDirectory() as tmp:
+            out_path = Path(tmp) / "graph.ttl"
+            out = c.datasets.upload_graph("ds", g, filename=out_path)
 
-        with mock.patch.dict(sys.modules, {"rdflib": fake_rdflib}):
-            g = _FakeGraph()
-            with TemporaryDirectory() as tmp:
-                out_path = Path(tmp) / "graph.ttl"
-                out = c.datasets.upload_graph("ds", g, filename=out_path)
-
-                self.assertEqual(out, "ok")
-                self.assertEqual(
-                    out_path.read_text(encoding="utf-8"), "@prefix : <x> ."
-                )
+            self.assertEqual(out, "ok")
+            self.assertEqual(out_path.read_text(encoding="utf-8"), "@prefix : <x> .")
 
         self.assertEqual(s.calls[0]["method"], "POST")
         self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
