@@ -277,7 +277,5 @@ class HttpClient:
             )
         )
 
-    def delete_text(
-        self, url: str, *, headers: dict[str, str] | None = None
-    ) -> str:
+    def delete_text(self, url: str, *, headers: dict[str, str] | None = None) -> str:
         return read_text(self._request("DELETE", url, headers=headers))
