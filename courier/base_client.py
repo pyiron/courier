@@ -184,41 +184,6 @@ class HttpClient:
         headers: dict[str, str] | None = None,
         stream: bool = False,
     ) -> requests.Response:
-        """Perform a raw HTTP request.
-
-        This is a small, public escape hatch for advanced use cases where a
-        service-specific resource does not yet expose a dedicated method.
-
-        Notes
-        -----
-        - This method does not interpret the response. Use `courier.transport.request`
-          helpers (or `Response.raise_for_status`) as needed.
-        - For common request/response patterns, prefer the convenience methods
-          (`get_text`, `get_json`, `put_text`, `post_text`, `delete_text`).
-        """
-        return self._request(
-            method,
-            url,
-            params=params,
-            json=json,
-            data=data,
-            files=files,
-            headers=headers,
-            stream=stream,
-        )
-
-    def _request(
-        self,
-        method: str,
-        url: str,
-        *,
-        params: dict[str, Any] | None = None,
-        json: Any | None = None,
-        data: Any | None = None,
-        files: dict[str, Any] | None = None,
-        headers: dict[str, str] | None = None,
-        stream: bool = False,
-    ) -> requests.Response:
         return self.session.request(
             method=method,
             url=url,
@@ -239,7 +204,7 @@ class HttpClient:
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> str:
-        return read_text(self._request("GET", url, params=params, headers=headers))
+        return read_text(self.request("GET", url, params=params, headers=headers))
 
     def get_json(
         self,
@@ -248,7 +213,7 @@ class HttpClient:
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> Any:
-        return read_json(self._request("GET", url, params=params, headers=headers))
+        return read_json(self.request("GET", url, params=params, headers=headers))
 
     def put_text(
         self,
@@ -259,7 +224,7 @@ class HttpClient:
         headers: dict[str, str] | None = None,
     ) -> str:
         return read_text(
-            self._request("PUT", url, data=data, json=json, headers=headers)
+            self.request("PUT", url, data=data, json=json, headers=headers)
         )
 
     def post_text(
@@ -272,10 +237,10 @@ class HttpClient:
         headers: dict[str, str] | None = None,
     ) -> str:
         return read_text(
-            self._request(
+            self.request(
                 "POST", url, data=data, json=json, files=files, headers=headers
             )
         )
 
     def delete_text(self, url: str, *, headers: dict[str, str] | None = None) -> str:
-        return read_text(self._request("DELETE", url, headers=headers))
+        return read_text(self.request("DELETE", url, headers=headers))
