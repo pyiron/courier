@@ -15,4 +15,6 @@ core.*
 \#*#
 .dir-locals.el
 _version.py
-jupterhub.log
+jupyterlab.log
+.ai.code.files/
+AGENTS.md
