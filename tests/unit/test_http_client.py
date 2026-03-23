@@ -2,7 +2,7 @@ import unittest
 
 import requests
 
-from courier.base_client import HttpClient
+from courier import HttpClient
 from courier.exceptions import HttpError
 
 
