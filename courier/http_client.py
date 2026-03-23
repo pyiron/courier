@@ -49,6 +49,7 @@ class HttpClient:
         timeout: float | tuple[float, float] = 30.0,
         session: requests.Session | None = None,
     ) -> None:
+        """Initialize an HTTP client with validated transport settings."""
         # Store state privately and expose via properties.
         self._address = address
         self._default_scheme = self._validate_default_scheme(default_scheme)
@@ -71,6 +72,7 @@ class HttpClient:
 
     @classmethod
     def _validate_default_scheme(cls, default_scheme: str) -> str:
+        """Validate and normalize the default URL scheme."""
         if not default_scheme or not str(default_scheme).strip():
             raise ValueError("default_scheme must be a non-empty string")
         scheme = str(default_scheme).strip().lower()
@@ -84,6 +86,7 @@ class HttpClient:
     def _validate_timeout(
         timeout: int | float | tuple[int | float, int | float],
     ) -> float | tuple[float, float]:
+        """Validate timeout input and normalize numeric values to floats."""
         if isinstance(timeout, bool):
             raise TypeError(
                 "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
@@ -111,6 +114,7 @@ class HttpClient:
 
     @staticmethod
     def _validate_verify(verify: object) -> bool | str:
+        """Validate TLS verification settings."""
         if isinstance(verify, bool):
             return verify
         if isinstance(verify, str):
@@ -121,32 +125,39 @@ class HttpClient:
 
     @staticmethod
     def _normalize_token(token: str | None) -> str | None:
+        """Normalize bearer tokens by trimming whitespace and empty values."""
         if token is None:
             return None
         return token.strip() or None
 
     @property
     def address(self) -> str:
+        """Return the address passed at construction time."""
         return self._address
 
     @property
     def base_url(self) -> str:
+        """Return the normalized base URL derived from the address."""
         return self._base_url
 
     @property
     def default_scheme(self) -> str:
+        """Return the normalized default scheme used for bare addresses."""
         return self._default_scheme
 
     @property
     def session(self) -> requests.Session:
+        """Return the underlying requests session."""
         return self._session
 
     @property
     def token(self) -> str | None:
+        """Return the current bearer token, if any."""
         return self._token
 
     @token.setter
     def token(self, token: str | None) -> None:
+        """Set the bearer token and synchronize the session headers."""
         self._token = self._normalize_token(token)
 
         # Keep the session's Authorization header in sync with the current token.
@@ -155,18 +166,22 @@ class HttpClient:
 
     @property
     def verify(self) -> bool | str:
+        """Return the current TLS verification setting."""
         return self._verify
 
     @verify.setter
     def verify(self, verify: bool | str) -> None:
+        """Set the TLS verification setting after validation."""
         self._verify = self._validate_verify(verify)
 
     @property
     def timeout(self) -> float | tuple[float, float]:
+        """Return the current request timeout configuration."""
         return self._timeout
 
     @timeout.setter
     def timeout(self, timeout: float | tuple[float, float]) -> None:
+        """Set the request timeout after validation."""
         self._timeout = self._validate_timeout(timeout)
 
     def request(
@@ -181,6 +196,7 @@ class HttpClient:
         headers: dict[str, str] | None = None,
         stream: bool = False,
     ) -> requests.Response:
+        """Perform an HTTP request using the configured session defaults."""
         return self.session.request(
             method=method,
             url=url,
@@ -201,6 +217,7 @@ class HttpClient:
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> str:
+        """Send a GET request and return the response body as text."""
         return read_text(self.request("GET", url, params=params, headers=headers))
 
     def get_json(
@@ -210,6 +227,7 @@ class HttpClient:
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> Any:
+        """Send a GET request and decode the response body as JSON."""
         return read_json(self.request("GET", url, params=params, headers=headers))
 
     def put_text(
@@ -220,6 +238,7 @@ class HttpClient:
         json: Any | None = None,
         headers: dict[str, str] | None = None,
     ) -> str:
+        """Send a PUT request and return the response body as text."""
         return read_text(
             self.request("PUT", url, data=data, json=json, headers=headers)
         )
@@ -233,6 +252,7 @@ class HttpClient:
         files: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> str:
+        """Send a POST request and return the response body as text."""
         return read_text(
             self.request(
                 "POST", url, data=data, json=json, files=files, headers=headers
@@ -240,4 +260,5 @@ class HttpClient:
         )
 
     def delete_text(self, url: str, *, headers: dict[str, str] | None = None) -> str:
+        """Send a DELETE request and return the response body as text."""
         return read_text(self.request("DELETE", url, headers=headers))
