@@ -118,8 +118,7 @@ class HttpClient:
     def _normalize_token(token: str | None) -> str | None:
         if token is None:
             return None
-        stripped = token.strip()
-        return stripped or None
+        return token.strip() or None
 
     @property
     def address(self) -> str:
