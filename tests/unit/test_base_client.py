@@ -3,9 +3,6 @@ import unittest
 import requests
 
 from courier.base_client import HttpClient
-
-# Backwards-compat in this test module only (was BaseClient before rename)
-BaseClient = HttpClient
 from courier.exceptions import HttpError
 
 
@@ -64,70 +61,70 @@ class _FakeSession:
 class TestHttpClientInit(unittest.TestCase):
     def test_base_url_is_normalized(self):
         s = _FakeSession()
-        c = BaseClient("example.org", session=s)
+        c = HttpClient("example.org", session=s)
         self.assertEqual(c.base_url, "https://example.org")
 
     def test_default_scheme_is_used_when_address_has_no_scheme(self):
         s = _FakeSession()
-        c = BaseClient("example.org", default_scheme="http", session=s)
+        c = HttpClient("example.org", default_scheme="http", session=s)
         self.assertEqual(c.base_url, "http://example.org")
 
     def test_bearer_token_header_is_set_when_token_present(self):
         s = _FakeSession()
-        _ = BaseClient("example.org", token="abc", session=s)
+        _ = HttpClient("example.org", token="abc", session=s)
         self.assertEqual(s.headers.get("Authorization"), "Bearer abc")
 
     def test_bearer_token_is_stripped(self):
         s = _FakeSession()
-        _ = BaseClient("example.org", token="  abc  ", session=s)
+        _ = HttpClient("example.org", token="  abc  ", session=s)
         self.assertEqual(s.headers.get("Authorization"), "Bearer abc")
 
     def test_token_is_mutable_and_updates_authorization_header(self):
         s = _FakeSession()
-        c = BaseClient("example.org", token="abc", session=s)
+        c = HttpClient("example.org", token="abc", session=s)
         c.token = "def"
         self.assertEqual(s.headers.get("Authorization"), "Bearer def")
 
     def test_token_can_be_cleared_and_removes_authorization_header(self):
         s = _FakeSession()
-        c = BaseClient("example.org", token="abc", session=s)
+        c = HttpClient("example.org", token="abc", session=s)
         c.token = None
         self.assertIsNone(s.headers.get("Authorization"))
 
     def test_no_authorization_header_when_token_is_none(self):
         s = _FakeSession()
-        _ = BaseClient("example.org", token=None, session=s)
+        _ = HttpClient("example.org", token=None, session=s)
         self.assertIsNone(s.headers.get("Authorization"))
 
 
 class TestHttpClientValidation(unittest.TestCase):
     def test_timeout_must_be_positive(self):
         with self.assertRaises(ValueError):
-            _ = BaseClient("example.org", timeout=0)
+            _ = HttpClient("example.org", timeout=0)
         with self.assertRaises(ValueError):
-            _ = BaseClient("example.org", timeout=-1)
+            _ = HttpClient("example.org", timeout=-1)
         with self.assertRaises(ValueError):
-            _ = BaseClient("example.org", timeout=(1, 0))
+            _ = HttpClient("example.org", timeout=(1, 0))
 
     def test_timeout_type_is_checked(self):
         with self.assertRaises(TypeError):
-            _ = BaseClient("example.org", timeout=(1, 2, 3))
+            _ = HttpClient("example.org", timeout=(1, 2, 3))
 
     def test_default_scheme_is_validated(self):
         with self.assertRaises(ValueError):
-            _ = BaseClient("example.org", default_scheme="ftp")
+            _ = HttpClient("example.org", default_scheme="ftp")
 
     def test_verify_must_be_bool_or_nonempty_string(self):
         with self.assertRaises(ValueError):
-            _ = BaseClient("example.org", verify="")
+            _ = HttpClient("example.org", verify="")
         with self.assertRaises(TypeError):
-            _ = BaseClient("example.org", verify=object())
+            _ = HttpClient("example.org", verify=object())
 
 
 class TestHttpClientRequest(unittest.TestCase):
     def test_request_passes_through_common_arguments(self):
         s = _FakeSession()
-        c = BaseClient("example.org", verify=False, timeout=(1.0, 2.0), session=s)
+        c = HttpClient("example.org", verify=False, timeout=(1.0, 2.0), session=s)
 
         _ = c.request(
             "POST",
@@ -158,7 +155,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
     def test_get_text_returns_response_text(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="hello")
-        c = BaseClient("example.org", session=s)
+        c = HttpClient("example.org", session=s)
 
         out = c.get_text("https://example.org/hello")
         self.assertEqual(out, "hello")
@@ -170,7 +167,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
     def test_get_json_returns_decoded_json(self):
         s = _FakeSession()
         s.response = _FakeResponse(json_value={"ok": True})
-        c = BaseClient("example.org", session=s)
+        c = HttpClient("example.org", session=s)
 
         out = c.get_json("https://example.org/json")
         self.assertEqual(out, {"ok": True})
@@ -178,7 +175,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
     def test_post_text_returns_response_text(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="posted")
-        c = BaseClient("example.org", session=s)
+        c = HttpClient("example.org", session=s)
 
         out = c.post_text("https://example.org/post", data="x")
         self.assertEqual(out, "posted")
@@ -187,7 +184,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
     def test_put_text_returns_response_text(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="put")
-        c = BaseClient("example.org", session=s)
+        c = HttpClient("example.org", session=s)
 
         out = c.put_text("https://example.org/put", json={"a": 1})
         self.assertEqual(out, "put")
@@ -196,7 +193,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
     def test_delete_text_returns_response_text(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="deleted")
-        c = BaseClient("example.org", session=s)
+        c = HttpClient("example.org", session=s)
 
         out = c.delete_text("https://example.org/del")
         self.assertEqual(out, "deleted")
@@ -210,7 +207,7 @@ class TestHttpClientConvenienceMethods(unittest.TestCase):
             request=_FakeRequest("GET"),
             raise_for_status_exc=requests.HTTPError("404 Client Error"),
         )
-        c = BaseClient("example.org", session=s)
+        c = HttpClient("example.org", session=s)
 
         with self.assertRaises(HttpError) as ctx:
             _ = c.get_text("https://example.org/missing")
