@@ -109,6 +109,10 @@ class TestHttpClientValidation(unittest.TestCase):
     def test_timeout_type_is_checked(self):
         with self.assertRaises(TypeError):
             _ = HttpClient("example.org", timeout=(1, 2, 3))
+        with self.assertRaises(TypeError):
+            _ = HttpClient("example.org", timeout=True)
+        with self.assertRaises(TypeError):
+            _ = HttpClient("example.org", timeout=False)
 
     def test_default_scheme_is_validated(self):
         with self.assertRaises(ValueError):

@@ -84,6 +84,11 @@ class HttpClient:
     def _validate_timeout(
         timeout: int | float | tuple[int | float, int | float],
     ) -> float | tuple[float, float]:
+        if isinstance(timeout, bool):
+            raise TypeError(
+                "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
+            )
+
         if isinstance(timeout, (int, float)):
             if timeout <= 0:
                 raise ValueError("timeout must be > 0")
