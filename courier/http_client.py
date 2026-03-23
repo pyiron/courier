@@ -82,7 +82,7 @@ class HttpClient:
 
     @staticmethod
     def _validate_timeout(
-        timeout: object,
+        timeout: int | float | tuple[int | float, int | float],
     ) -> float | tuple[float, float]:
         if isinstance(timeout, (int, float)):
             if timeout <= 0:
