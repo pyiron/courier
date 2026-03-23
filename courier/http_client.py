@@ -89,11 +89,7 @@ class HttpClient:
                 raise ValueError("timeout must be > 0")
             return float(timeout)
 
-        if not isinstance(timeout, tuple):
-            raise TypeError(
-                "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
-            )
-        if len(timeout) != 2:
+        if not isinstance(timeout, tuple) or len(timeout) != 2:
             raise TypeError(
                 "timeout must be a positive number (seconds) or a (connect, read) tuple with length 2"
             )
