@@ -7,6 +7,7 @@ except importlib.metadata.PackageNotFoundError:
     # Repository clones will register an unknown version
     __version__ = "0.0.0+unknown"
 
+from courier.http_client import HttpClient
 from courier.ontodocker import (
     create_empty_dataset,
     delete_dataset,
@@ -18,6 +19,7 @@ from courier.ontodocker import (
 )
 
 __all__ = [
+    "HttpClient",
     "rectify_endpoints",
     "get_all_dataset_sparql_endpoints",
     "extract_dataset_names",
