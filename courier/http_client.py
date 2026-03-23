@@ -1,8 +1,8 @@
-"""Public HTTP client for courier.
+"""Public HTTP(S) client for courier.
 
-`HttpClient` provides a concrete HTTP(S) client that can be used directly by users
-or subclassed by service-specific courier clients. It centralizes a small set of
-shared concerns:
+`HttpClient` is a supported public API. It can be used directly when callers need
+low-level control over HTTP requests, and it also serves as a base for
+service-specific courier clients. It centralizes a small set of shared concerns:
 
 - normalization of the user-provided server address into a base URL
 - creation/configuration of a `requests.Session`
@@ -35,7 +35,7 @@ from courier.transport.url import normalize_base_url
 
 
 class HttpClient:
-    """Public HTTP client for http-based courier service clients."""
+    """Public HTTP(S) client for direct use and for service-client subclasses."""
 
     _ALLOWED_DEFAULT_SCHEMES: tuple[str, ...] = ("http", "https")
 
