@@ -63,7 +63,7 @@ class HttpClient:
             self._address, default_scheme=self._default_scheme
         )
 
-        self._session = session if session is not None else create_session()
+        self._session = session or create_session()
 
         # token is mutable; use the setter to keep session headers in sync
         self._token: str | None = None
