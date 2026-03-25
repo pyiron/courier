@@ -154,9 +154,10 @@ class DatasetsResource:
         """
         if not turtlefile or not turtlefile.strip():
             raise ValidationError("turtlefile must be a non-empty path")
+        url = self._dataset_url(name)
 
         with open(turtlefile, "rb") as f:
-            return self.client.post_text(self._dataset_url(name), files={"file": f})
+            return self.client.post_text(url, files={"file": f})
 
     def upload_graph(
         self,
@@ -206,6 +207,7 @@ class DatasetsResource:
             raise ValidationError(
                 "filename must be a non-empty path (str/Path) or None"
             )
+        url = self._dataset_url(name)
 
         if not isinstance(graph, rdflib.Graph):
             raise ValidationError("graph must be an rdflib.Graph instance")
@@ -224,4 +226,4 @@ class DatasetsResource:
 
         bio = BytesIO(ttl_bytes)
         files = {"file": ("graph.ttl", bio, "text/turtle")}
-        return self.client.post_text(self._dataset_url(name), files=files)
+        return self.client.post_text(url, files=files)
