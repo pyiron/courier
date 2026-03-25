@@ -23,6 +23,8 @@ class DatasetsResource:
     client: OntodockerClient
 
     def _dataset_url(self, dataset_name: str) -> str:
+        if not dataset_name or not dataset_name.strip():
+            raise ValidationError("dataset name must be non-empty")
         dataset = dataset_name.strip()
         return join_url(self.client.base_url, segments=["api", "v1", "jena", dataset])
 
@@ -54,9 +56,6 @@ class DatasetsResource:
         ValidationError
             If `name` is empty/blank.
         """
-        if not name or not name.strip():
-            raise ValidationError("dataset name must be non-empty")
-
         return self.client.put_text(self._dataset_url(name))
 
     def delete(self, name: str) -> str:
@@ -77,9 +76,6 @@ class DatasetsResource:
         ValidationError
             If `name` is empty/blank.
         """
-        if not name or not name.strip():
-            raise ValidationError("dataset name must be non-empty")
-
         return self.client.delete_text(self._dataset_url(name))
 
     def fetch_turtle(self, name: str) -> str:
@@ -100,9 +96,6 @@ class DatasetsResource:
         ValidationError
             If `name` is empty/blank.
         """
-        if not name or not name.strip():
-            raise ValidationError("dataset name must be non-empty")
-
         return self.client.get_text(self._dataset_url(name))
 
     def download_turtle(self, name: str, filename: str | Path) -> Path:
