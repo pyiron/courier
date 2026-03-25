@@ -364,6 +364,7 @@ class TestSparqlResource(unittest.TestCase):
     def test_query_df_uses_sparqlwrapper_and_adds_auth_header_when_token_set(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", token="abc", session=s)
+        wrappers: list[_FakeSparqlWrapper] = []
 
         class _FakeSparqlWrapper:
             def __init__(self, endpoint: str):
@@ -371,6 +372,7 @@ class TestSparqlResource(unittest.TestCase):
                 self.headers: dict[str, str] = {}
                 self.query = None
                 self.return_format = None
+                wrappers.append(self)
 
             def setReturnFormat(self, fmt: str):
                 self.return_format = fmt
@@ -398,6 +400,8 @@ class TestSparqlResource(unittest.TestCase):
         self.assertIsInstance(df, pd.DataFrame)
         self.assertEqual(list(df.columns), ["a", "b"])
         self.assertEqual(df.iloc[0].tolist(), ["1", "2"])
+        self.assertEqual(len(wrappers), 1)
+        self.assertEqual(wrappers[0].headers["Authorization"], "Bearer abc")
 
 
 if __name__ == "__main__":

@@ -138,10 +138,20 @@ class TestMakeDataframe(unittest.TestCase):
         self.assertEqual(len(df), 2)
         self.assertEqual(list(df["x"]), ["1", "2"])
 
-    def test_missing_variable_in_binding_raises_value_error(self):
+    def test_binding_key_order_does_not_affect_column_alignment(self):
+        result = self._make_result(
+            ["a", "b"],
+            [{"b": {"value": "2"}, "a": {"value": "1"}}],
+        )
+        df = _compat.make_dataframe(result, ["a", "b"])
+        expected = pd.DataFrame([["1", "2"]], columns=["a", "b"])
+        pdt.assert_frame_equal(df, expected)
+
+    def test_missing_variable_in_binding_becomes_null(self):
         result = self._make_result(
             ["a", "b"],
             [{"a": {"value": "1"}}],  # "b" is missing
         )
-        with self.assertRaises(ValueError):
-            _compat.make_dataframe(result, ["a", "b"])
+        df = _compat.make_dataframe(result, ["a", "b"])
+        self.assertEqual(df.iloc[0]["a"], "1")
+        self.assertTrue(pd.isna(df.iloc[0]["b"]))
