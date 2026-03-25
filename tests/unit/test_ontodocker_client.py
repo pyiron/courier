@@ -165,6 +165,45 @@ class TestDatasetsResource(unittest.TestCase):
         self.assertEqual(s.calls[0]["method"], "DELETE")
         self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
 
+    def test_fetch_turtle_validates_name(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.fetch_turtle("")
+
+    def test_fetch_turtle_uses_get(self):
+        s = _FakeSession()
+        s.response = _FakeResponse(text="@prefix : <x> .", request=_FakeRequest("GET"))
+        c = OntodockerClient("https://example.org", session=s)
+
+        out = c.datasets.fetch_turtle(" ds ")
+
+        self.assertEqual(out, "@prefix : <x> .")
+        self.assertEqual(s.calls[0]["method"], "GET")
+        self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
+
+    def test_download_turtle_validates_name_and_filename(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.download_turtle("", Path("out.ttl"))
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.download_turtle("ds", "   ")
+
+    def test_download_turtle_writes_file_when_requested(self):
+        s = _FakeSession()
+        s.response = _FakeResponse(text="@prefix : <x> .", request=_FakeRequest("GET"))
+        c = OntodockerClient("https://example.org", session=s)
+
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "out.ttl"
+            out = c.datasets.download_turtle("ds", path)
+
+            self.assertEqual(out, path)
+            self.assertEqual(path.read_text(encoding="utf-8"), "@prefix : <x> .")
+
     def test_upload_turtlefile_validates_inputs(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)

@@ -82,6 +82,61 @@ class DatasetsResource:
 
         return self.client.delete_text(self._dataset_url(name))
 
+    def fetch_turtle(self, name: str) -> str:
+        """Fetch a dataset as Turtle text.
+
+        Parameters
+        ----------
+        name
+            Dataset name.
+
+        Returns
+        -------
+        ttl
+            Turtle document as text.
+
+        Raises
+        ------
+        ValidationError
+            If `name` is empty/blank.
+        """
+        if not name or not name.strip():
+            raise ValidationError("dataset name must be non-empty")
+
+        return self.client.get_text(self._dataset_url(name))
+
+    def download_turtle(self, name: str, filename: str | Path) -> Path:
+        """Download a dataset and save it to a Turtle file.
+
+        Parameters
+        ----------
+        name
+            Dataset name.
+        filename
+            Output file path written with UTF-8 encoding.
+
+        Returns
+        -------
+        path
+            Path written to disk.
+
+        Raises
+        ------
+        ValidationError
+            If `name` is empty/blank, or `filename` is blank when provided as a string.
+        OSError
+            If the file cannot be written (e.g. permissions, missing directory).
+        """
+        if not name or not name.strip():
+            raise ValidationError("dataset name must be non-empty")
+        if isinstance(filename, str) and not filename.strip():
+            raise ValidationError("filename must be a non-empty path (str/Path)")
+
+        path = Path(filename)
+        content = self.fetch_turtle(name)
+        _ = path.write_text(content, encoding="utf-8")
+        return path
+
     def upload_turtlefile(self, name: str, turtlefile: str) -> str:
         """Upload a Turtle (.ttl) file into an existing dataset.
 
