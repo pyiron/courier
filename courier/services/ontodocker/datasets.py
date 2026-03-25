@@ -120,8 +120,6 @@ class DatasetsResource:
         OSError
             If the file cannot be written (e.g. permissions, missing directory).
         """
-        if not name or not name.strip():
-            raise ValidationError("dataset name must be non-empty")
         if isinstance(filename, str) and not filename.strip():
             raise ValidationError("filename must be a non-empty path (str/Path)")
 
@@ -154,8 +152,6 @@ class DatasetsResource:
         PermissionError
             If `turtlefile` cannot be read.
         """
-        if not name or not name.strip():
-            raise ValidationError("dataset name must be non-empty")
         if not turtlefile or not turtlefile.strip():
             raise ValidationError("turtlefile must be a non-empty path")
 
@@ -206,9 +202,6 @@ class DatasetsResource:
         OSError
             If `filename` is provided and cannot be written.
         """
-        if not name or not name.strip():
-            raise ValidationError("dataset name must be non-empty")
-
         if isinstance(filename, str) and not filename.strip():
             raise ValidationError(
                 "filename must be a non-empty path (str/Path) or None"
