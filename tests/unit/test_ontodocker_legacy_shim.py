@@ -63,14 +63,17 @@ class TestOntodockerLegacyShim(unittest.TestCase):
             warnings.simplefilter("always")
             out = courier.download_dataset_as_turtle_file("example.org", "ds")
 
+        expected_path = Path(tmpdir) / "ds.ttl"
         self.assertEqual(
             [warning.category for warning in w],
             [DeprecationWarning, UserWarning],
         )
         self.assertIn("deprecated", str(w[0].message))
-        self.assertIn(f"{tmpdir}/ds.ttl", str(w[1].message))
-        self.assertEqual(out, str(Path(tmpdir) / "ds.ttl"))
-        fake_client.datasets.download_turtle.assert_called_once()
+        self.assertIn(str(expected_path), str(w[1].message))
+        self.assertEqual(out, str(expected_path))
+        fake_client.datasets.download_turtle.assert_called_once_with(
+            "ds", str(expected_path)
+        )
 
     def test_send_query_delegates_to_sparql_query_df(self):
         fake_client = mock.Mock()
