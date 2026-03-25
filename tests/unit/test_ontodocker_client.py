@@ -364,7 +364,7 @@ class TestSparqlResource(unittest.TestCase):
     def test_query_df_uses_sparqlwrapper_and_adds_auth_header_when_token_set(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", token="abc", session=s)
-        wrappers: list[_FakeSparqlWrapper] = []
+        wrappers: list[object] = []
 
         class _FakeSparqlWrapper:
             def __init__(self, endpoint: str):
