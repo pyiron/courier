@@ -230,7 +230,7 @@ class TestDatasetsResource(unittest.TestCase):
         self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
         self.assertIn("file", s.calls[0]["files"])
 
-    def test_upload_graph_validates_name_and_filename(self):
+    def test_upload_graph_validates_name(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
@@ -238,9 +238,6 @@ class TestDatasetsResource(unittest.TestCase):
 
         with self.assertRaises(ValidationError):
             _ = c.datasets.upload_graph("", graph)
-
-        with self.assertRaises(ValidationError):
-            _ = c.datasets.upload_graph("ds", graph, filename="   ")
 
     def test_upload_graph_validates_graph_type(self):
         s = _FakeSession()
@@ -279,7 +276,7 @@ class TestDatasetsResource(unittest.TestCase):
         self.assertEqual(posted[0], "graph.ttl")
         self.assertEqual(posted[2], "text/turtle")
 
-    def test_upload_graph_serializes_and_posts(self):
+    def test_upload_graph_serializes_text_and_posts(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
         c = OntodockerClient("https://example.org", session=s)
@@ -289,13 +286,9 @@ class TestDatasetsResource(unittest.TestCase):
                 self.format = format
                 return "@prefix : <x> ."
 
-        g = _FakeGraph()
-        with TemporaryDirectory() as tmp:
-            out_path = Path(tmp) / "graph.ttl"
-            out = c.datasets.upload_graph("ds", g, filename=out_path)
+        out = c.datasets.upload_graph("ds", _FakeGraph())
 
-            self.assertEqual(out, "ok")
-            self.assertEqual(out_path.read_text(encoding="utf-8"), "@prefix : <x> .")
+        self.assertEqual(out, "ok")
 
         self.assertEqual(s.calls[0]["method"], "POST")
         self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")

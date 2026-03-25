@@ -164,7 +164,6 @@ class DatasetsResource:
         name: str,
         graph: rdflib.Graph,
         *,
-        filename: str | Path | None = None,
         encoding: str = "utf-8",
     ) -> str:
         """Serialize an rdflib.Graph to Turtle and upload it into an existing dataset.
@@ -173,20 +172,14 @@ class DatasetsResource:
         provided graph in-memory and uploads it as multipart form data, using the
         same endpoint and form field name as `upload_turtlefile`.
 
-        If `filename` is provided, the serialized Turtle is also written to that path
-        (UTF-8).
-
         Parameters
         ----------
         name
             Dataset name.
         graph
             An ``rdflib.Graph`` instance.
-        filename
-            If provided, also write the serialized Turtle text to this file (UTF-8).
         encoding
-            Encoding used when converting Turtle text to bytes and when writing
-            to `filename`.
+            Encoding used when converting Turtle text to bytes.
 
         Returns
         -------
@@ -196,17 +189,10 @@ class DatasetsResource:
         Raises
         ------
         ValidationError
-            If `name` is empty/blank, `graph` is not an rdflib.Graph, or `filename`
-            is blank when provided.
+            If `name` is empty/blank or `graph` is not an rdflib.Graph.
         Exception
             Exceptions raised by ``graph.serialize(format="turtle")``.
-        OSError
-            If `filename` is provided and cannot be written.
         """
-        if isinstance(filename, str) and not filename.strip():
-            raise ValidationError(
-                "filename must be a non-empty path (str/Path) or None"
-            )
         url = self._dataset_url(name)
 
         if not isinstance(graph, rdflib.Graph):
@@ -220,9 +206,6 @@ class DatasetsResource:
         else:
             ttl_text = str(ttl)
             ttl_bytes = ttl_text.encode(encoding)
-
-        if filename is not None:
-            _ = Path(filename).write_text(ttl_text, encoding=encoding)
 
         bio = BytesIO(ttl_bytes)
         files = {"file": ("graph.ttl", bio, "text/turtle")}
