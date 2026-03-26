@@ -128,9 +128,6 @@ class SparqlResource:
             query,
             accept="application/sparql-results+json",
         )
-        try:
-            result = json.loads(text)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Failed to decode SPARQL results JSON: {e}") from e
+        result = json.loads(text)
 
         return make_dataframe(result, columns)

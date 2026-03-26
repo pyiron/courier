@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -366,12 +367,12 @@ class TestSparqlResource(unittest.TestCase):
         with self.assertRaises(ValidationError):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=("a",))
 
-    def test_query_df_raises_value_error_on_invalid_json(self):
+    def test_query_df_raises_json_decode_error_on_invalid_json(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="not json", request=_FakeRequest("GET"))
         c = OntodockerClient("https://example.org", session=s)
 
-        with self.assertRaisesRegex(ValueError, "Failed to decode SPARQL results JSON"):
+        with self.assertRaises(json.JSONDecodeError):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=["a"])
 
     def test_query_df_delegates_to_query_raw_with_accept_header(self):
