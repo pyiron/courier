@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -349,52 +350,120 @@ class TestSparqlResource(unittest.TestCase):
         c = OntodockerClient("https://example.org", session=s)
 
         with self.assertRaises(ValidationError):
+            _ = c.sparql.query_df("", "SELECT ?a WHERE {}", columns=["a"])
+
+        with self.assertRaises(ValidationError):
             _ = c.sparql.query_df("ds", "", columns=["a"])
 
         with self.assertRaises(ValidationError):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=[])
 
-    def test_query_df_uses_sparqlwrapper_and_adds_auth_header_when_token_set(self):
+        with self.assertRaises(ValidationError):
+            _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=["a", " "])
+
+        with self.assertRaises(ValidationError):
+            _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=["a", 1])
+
+        with self.assertRaises(ValidationError):
+            _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=("a",))
+
+    def test_query_df_raises_json_decode_error_on_invalid_json(self):
         s = _FakeSession()
-        c = OntodockerClient("https://example.org", token="abc", session=s)
-        wrappers: list[object] = []
+        s.response = _FakeResponse(text="not json", request=_FakeRequest("GET"))
+        c = OntodockerClient("https://example.org", session=s)
 
-        class _FakeSparqlWrapper:
-            def __init__(self, endpoint: str):
-                self.endpoint = endpoint
-                self.headers: dict[str, str] = {}
-                self.query = None
-                self.return_format = None
-                wrappers.append(self)
+        with self.assertRaises(json.JSONDecodeError):
+            _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=["a"])
 
-            def setReturnFormat(self, fmt: str):
-                self.return_format = fmt
+    def test_query_df_delegates_to_query_raw_with_accept_header(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
 
-            def addCustomHttpHeader(self, key: str, value: str):
-                self.headers[key] = value
+        with mock.patch.object(
+            c.sparql,
+            "query_raw",
+            return_value='{"results": {"bindings": [{"a": {"value": "1"}}]}}',
+        ) as query_raw:
+            df = c.sparql.query_df(" ds ", "SELECT ?a WHERE {}", columns=["a"])
 
-            def setQuery(self, query: str):
-                self.query = query
+        query_raw.assert_called_once_with(
+            " ds ",
+            "SELECT ?a WHERE {}",
+            accept="application/sparql-results+json",
+        )
+        self.assertIsInstance(df, pd.DataFrame)
+        self.assertEqual(list(df.columns), ["a"])
+        self.assertEqual(df.iloc[0].tolist(), ["1"])
 
-            def queryAndConvert(self):
-                return {
-                    "results": {
-                        "bindings": [
-                            {"a": {"value": "1"}, "b": {"value": "2"}},
-                        ]
-                    }
-                }
+    def test_query_df_does_not_call_query_raw_when_columns_invalid(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
 
-        with mock.patch(
-            "courier.services.ontodocker.sparql.SPARQLWrapper", _FakeSparqlWrapper
+        with (
+            mock.patch.object(c.sparql, "query_raw") as query_raw,
+            self.assertRaises(ValidationError),
         ):
-            df = c.sparql.query_df("ds", "SELECT ?a ?b WHERE {}", columns=["a", "b"])
+            _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=("a",))
+
+        query_raw.assert_not_called()
+
+    def test_query_df_strips_dataset_and_maps_missing_bindings_to_none(self):
+        s = _FakeSession()
+        s.response = _FakeResponse(
+            text=(
+                '{"results": {"bindings": ['
+                '{"a": {"value": "1"}}, '
+                '{"b": {"value": "2"}}'
+                "]}}"
+            ),
+            request=_FakeRequest("GET"),
+        )
+        c = OntodockerClient("https://example.org", session=s)
+
+        df = c.sparql.query_df(" ds ", "SELECT ?a ?b WHERE {}", columns=["a", "b"])
+
+        self.assertIsInstance(df, pd.DataFrame)
+        self.assertEqual(list(df.columns), ["a", "b"])
+        self.assertEqual(df.iloc[0]["a"], "1")
+        self.assertTrue(pd.isna(df.iloc[0]["b"]))
+        self.assertTrue(pd.isna(df.iloc[1]["a"]))
+        self.assertEqual(df.iloc[1]["b"], "2")
+        self.assertEqual(
+            s.calls[0]["url"],
+            "https://example.org/api/v1/jena/ds/sparql",
+        )
+
+    def test_query_df_uses_get_with_query_param_and_accept_header(self):
+        s = _FakeSession()
+        s.response = _FakeResponse(
+            text=(
+                '{"results": {"bindings": '
+                '[{"a": {"value": "1"}, "b": {"value": "2"}}]}}'
+            ),
+            request=_FakeRequest("GET"),
+        )
+        c = OntodockerClient("https://example.org", token="abc", session=s)
+
+        df = c.sparql.query_df("ds", "SELECT ?a ?b WHERE {}", columns=["a", "b"])
 
         self.assertIsInstance(df, pd.DataFrame)
         self.assertEqual(list(df.columns), ["a", "b"])
         self.assertEqual(df.iloc[0].tolist(), ["1", "2"])
-        self.assertEqual(len(wrappers), 1)
-        self.assertEqual(wrappers[0].headers["Authorization"], "Bearer abc")
+        self.assertEqual(s.calls[0]["method"], "GET")
+        self.assertEqual(
+            s.calls[0]["url"],
+            "https://example.org/api/v1/jena/ds/sparql",
+        )
+        self.assertEqual(
+            s.calls[0]["params"],
+            {"query": "SELECT ?a ?b WHERE {}"},
+        )
+        self.assertEqual(
+            s.calls[0]["headers"],
+            {"Accept": "application/sparql-results+json"},
+        )
+        # token is handled by HttpClient via session headers, not per-request
+        self.assertEqual(s.headers.get("Authorization"), "Bearer abc")
 
 
 if __name__ == "__main__":
