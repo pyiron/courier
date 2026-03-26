@@ -152,7 +152,8 @@ class DatasetsResource:
         PermissionError
             If `turtlefile` cannot be read.
         """
-        if not turtlefile or not turtlefile.strip():
+        turtlefile = turtlefile.strip()
+        if not turtlefile:
             raise ValidationError("turtlefile must be a non-empty path")
         url = self._dataset_url(name)
 
