@@ -202,10 +202,8 @@ class DatasetsResource:
 
         if isinstance(ttl, bytes):
             ttl_bytes = ttl
-            ttl_text = ttl.decode(encoding, errors="strict")
         else:
-            ttl_text = str(ttl)
-            ttl_bytes = ttl_text.encode(encoding)
+            ttl_bytes = str(ttl).encode(encoding)
 
         bio = BytesIO(ttl_bytes)
         files = {"file": ("graph.ttl", bio, "text/turtle")}
