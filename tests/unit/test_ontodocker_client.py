@@ -374,6 +374,38 @@ class TestSparqlResource(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Failed to decode SPARQL results JSON"):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=["a"])
 
+    def test_query_df_delegates_to_query_raw_with_accept_header(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        with mock.patch.object(
+            c.sparql,
+            "query_raw",
+            return_value='{"results": {"bindings": [{"a": {"value": "1"}}]}}',
+        ) as query_raw:
+            df = c.sparql.query_df(" ds ", "SELECT ?a WHERE {}", columns=["a"])
+
+        query_raw.assert_called_once_with(
+            " ds ",
+            "SELECT ?a WHERE {}",
+            accept="application/sparql-results+json",
+        )
+        self.assertIsInstance(df, pd.DataFrame)
+        self.assertEqual(list(df.columns), ["a"])
+        self.assertEqual(df.iloc[0].tolist(), ["1"])
+
+    def test_query_df_does_not_call_query_raw_when_columns_invalid(self):
+        s = _FakeSession()
+        c = OntodockerClient("https://example.org", session=s)
+
+        with (
+            mock.patch.object(c.sparql, "query_raw") as query_raw,
+            self.assertRaises(ValidationError),
+        ):
+            _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=("a",))
+
+        query_raw.assert_not_called()
+
     def test_query_df_strips_dataset_and_maps_missing_bindings_to_none(self):
         s = _FakeSession()
         s.response = _FakeResponse(
