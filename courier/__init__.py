@@ -17,9 +17,11 @@ from courier.ontodocker import (
     rectify_endpoints,
     upload_turtlefile,
 )
+from courier.services.ontodocker import OntodockerClient
 
 __all__ = [
     "HttpClient",
+    "OntodockerClient",
     "rectify_endpoints",
     "get_all_dataset_sparql_endpoints",
     "extract_dataset_names",

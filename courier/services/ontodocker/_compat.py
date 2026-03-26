@@ -125,15 +125,14 @@ def make_dataframe(result: dict, columns: list[str]) -> pd.DataFrame:
     Raises
     ------
     KeyError
-        If expected keys are missing.
-    ValueError
-        If extracted row lengths do not match `len(columns)`.
+        If expected top-level keys are missing.
     """
-    rows: list[list[str]] = []
+    rows: list[list[str | None]] = []
     for binding in result["results"]["bindings"]:
-        row: list[str] = []
-        for key in binding:
-            row.append(binding[key]["value"])
+        row: list[str | None] = []
+        for column in columns:
+            value = binding.get(column)
+            row.append(value.get("value") if isinstance(value, dict) else None)
         rows.append(row)
 
     df = pd.DataFrame(rows, columns=columns)
