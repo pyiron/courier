@@ -200,10 +200,7 @@ class DatasetsResource:
 
         ttl = graph.serialize(format="turtle")
 
-        if isinstance(ttl, bytes):
-            ttl_bytes = ttl
-        else:
-            ttl_bytes = str(ttl).encode(encoding)
+        ttl_bytes = ttl if isinstance(ttl, bytes) else str(ttl).encode(encoding)
 
         bio = BytesIO(ttl_bytes)
         files = {"file": ("graph.ttl", bio, "text/turtle")}
