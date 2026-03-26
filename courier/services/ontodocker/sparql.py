@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import pandas as pd
-from SPARQLWrapper import SPARQLWrapper
 
 from courier.exceptions import ValidationError
 from courier.services.ontodocker._compat import make_dataframe
@@ -110,20 +110,13 @@ class SparqlResource:
         ValidationError
             If `dataset`, `query`, or `columns` are invalid.
         Exception
-            Any exceptions raised by SPARQLWrapper or result conversion.
+            Any exceptions raised by the HTTP transport or result conversion.
         """
         if not query or not query.strip():
             raise ValidationError("query must be non-empty")
         if not columns:
             raise ValidationError("columns must be a non-empty list of strings")
 
-        endpoint = self.endpoint(dataset)
-
-        sparql = SPARQLWrapper(endpoint)
-        sparql.setReturnFormat("json")
-        if self.client.token:
-            sparql.addCustomHttpHeader("Authorization", f"Bearer {self.client.token}")
-        sparql.setQuery(query)
-
-        result = sparql.queryAndConvert()
+        raw = self.query_raw(dataset, query)
+        result = json.loads(raw)
         return make_dataframe(result, columns)

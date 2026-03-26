@@ -128,7 +128,7 @@ class DatasetsResource:
         _ = path.write_text(content, encoding="utf-8")
         return path
 
-    def upload_turtlefile(self, name: str, turtlefile: str) -> str:
+    def upload_turtlefile(self, name: str, turtlefile: str | Path) -> str:
         """Upload a Turtle (.ttl) file into an existing dataset.
 
         Parameters
@@ -136,7 +136,7 @@ class DatasetsResource:
         name
             Dataset name.
         turtlefile
-            Path to a Turtle file on disk.
+            Path to a Turtle file on disk (str or :class:`pathlib.Path`).
 
         Returns
         -------
@@ -146,14 +146,16 @@ class DatasetsResource:
         Raises
         ------
         ValidationError
-            If `name` or `turtlefile` is empty/blank.
+            If `name` or `turtlefile` (when given as a string) is empty/blank.
         FileNotFoundError
             If `turtlefile` does not exist.
         PermissionError
             If `turtlefile` cannot be read.
         """
-        if not turtlefile or not turtlefile.strip():
-            raise ValidationError("turtlefile must be a non-empty path")
+        if isinstance(turtlefile, str):
+            if not turtlefile.strip():
+                raise ValidationError("turtlefile must be a non-empty path")
+            turtlefile = Path(turtlefile.strip())
         url = self._dataset_url(name)
 
         with open(turtlefile, "rb") as f:
@@ -202,10 +204,8 @@ class DatasetsResource:
 
         if isinstance(ttl, bytes):
             ttl_bytes = ttl
-            ttl_text = ttl.decode(encoding, errors="strict")
         else:
-            ttl_text = str(ttl)
-            ttl_bytes = ttl_text.encode(encoding)
+            ttl_bytes = str(ttl).encode(encoding)
 
         bio = BytesIO(ttl_bytes)
         files = {"file": ("graph.ttl", bio, "text/turtle")}

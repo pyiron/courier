@@ -214,6 +214,9 @@ class TestDatasetsResource(unittest.TestCase):
         with self.assertRaises(ValidationError):
             _ = c.datasets.upload_turtlefile("ds", "")
 
+        with self.assertRaises(ValidationError):
+            _ = c.datasets.upload_turtlefile("ds", "   ")
+
     def test_upload_turtlefile_uses_post_with_file_field(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
@@ -229,6 +232,34 @@ class TestDatasetsResource(unittest.TestCase):
         self.assertEqual(s.calls[0]["method"], "POST")
         self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
         self.assertIn("file", s.calls[0]["files"])
+
+    def test_upload_turtlefile_accepts_path_object(self):
+        s = _FakeSession()
+        s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
+        c = OntodockerClient("https://example.org", session=s)
+
+        with TemporaryDirectory() as tmp:
+            turtlefile = Path(tmp) / "in.ttl"
+            turtlefile.write_text("@prefix : <x> .", encoding="utf-8")
+
+            out = c.datasets.upload_turtlefile("ds", turtlefile)
+
+        self.assertEqual(out, "ok")
+        self.assertIn("file", s.calls[0]["files"])
+
+    def test_upload_turtlefile_strips_whitespace_from_str_path(self):
+        s = _FakeSession()
+        s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
+        c = OntodockerClient("https://example.org", session=s)
+
+        with TemporaryDirectory() as tmp:
+            turtlefile = Path(tmp) / "in.ttl"
+            turtlefile.write_text("@prefix : <x> .", encoding="utf-8")
+
+            # leading/trailing whitespace must not cause FileNotFoundError
+            out = c.datasets.upload_turtlefile("ds", f"  {turtlefile}  ")
+
+        self.assertEqual(out, "ok")
 
     def test_upload_graph_validates_name(self):
         s = _FakeSession()
@@ -354,47 +385,33 @@ class TestSparqlResource(unittest.TestCase):
         with self.assertRaises(ValidationError):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=[])
 
-    def test_query_df_uses_sparqlwrapper_and_adds_auth_header_when_token_set(self):
+    def test_query_df_uses_http_client_and_applies_auth_via_session(self):
         s = _FakeSession()
+        s.response = _FakeResponse(
+            text=(
+                '{"results": {"bindings": ['
+                '{"a": {"value": "1"}, "b": {"value": "2"}}'
+                "]}}"
+            ),
+            request=_FakeRequest("GET"),
+        )
         c = OntodockerClient("https://example.org", token="abc", session=s)
-        wrappers: list[object] = []
 
-        class _FakeSparqlWrapper:
-            def __init__(self, endpoint: str):
-                self.endpoint = endpoint
-                self.headers: dict[str, str] = {}
-                self.query = None
-                self.return_format = None
-                wrappers.append(self)
-
-            def setReturnFormat(self, fmt: str):
-                self.return_format = fmt
-
-            def addCustomHttpHeader(self, key: str, value: str):
-                self.headers[key] = value
-
-            def setQuery(self, query: str):
-                self.query = query
-
-            def queryAndConvert(self):
-                return {
-                    "results": {
-                        "bindings": [
-                            {"a": {"value": "1"}, "b": {"value": "2"}},
-                        ]
-                    }
-                }
-
-        with mock.patch(
-            "courier.services.ontodocker.sparql.SPARQLWrapper", _FakeSparqlWrapper
-        ):
-            df = c.sparql.query_df("ds", "SELECT ?a ?b WHERE {}", columns=["a", "b"])
+        df = c.sparql.query_df("ds", "SELECT ?a ?b WHERE {}", columns=["a", "b"])
 
         self.assertIsInstance(df, pd.DataFrame)
         self.assertEqual(list(df.columns), ["a", "b"])
         self.assertEqual(df.iloc[0].tolist(), ["1", "2"])
-        self.assertEqual(len(wrappers), 1)
-        self.assertEqual(wrappers[0].headers["Authorization"], "Bearer abc")
+
+        # Verify the request went through the HttpClient session, not SPARQLWrapper
+        self.assertEqual(len(s.calls), 1)
+        self.assertEqual(s.calls[0]["method"], "GET")
+        self.assertEqual(
+            s.calls[0]["url"],
+            "https://example.org/api/v1/jena/ds/sparql",
+        )
+        # Auth is applied automatically via session headers (token setter syncs to session.headers)
+        self.assertEqual(s.headers.get("Authorization"), "Bearer abc")
 
 
 if __name__ == "__main__":
