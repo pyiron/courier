@@ -114,8 +114,12 @@ class SparqlResource:
         HttpError
             If the underlying HTTP request fails.
         """
-        if not columns or any(
-            not isinstance(column, str) or not column.strip() for column in columns
+        if (
+            not isinstance(columns, list)
+            or not columns
+            or any(
+                not isinstance(column, str) or not column.strip() for column in columns
+            )
         ):
             raise ValidationError("columns must be a non-empty list of strings")
 

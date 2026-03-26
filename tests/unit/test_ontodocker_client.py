@@ -363,6 +363,9 @@ class TestSparqlResource(unittest.TestCase):
         with self.assertRaises(ValidationError):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=["a", 1])
 
+        with self.assertRaises(ValidationError):
+            _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=("a",))
+
     def test_query_df_raises_value_error_on_invalid_json(self):
         s = _FakeSession()
         s.response = _FakeResponse(text="not json", request=_FakeRequest("GET"))
