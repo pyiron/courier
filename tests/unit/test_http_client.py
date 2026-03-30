@@ -101,6 +101,11 @@ class TestHttpClientInit(unittest.TestCase):
         c = HttpClient("example.org", session=s)
         self.assertEqual(c.address, "example.org")
 
+    def test_default_scheme_property(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", session=s)
+        self.assertEqual(c.default_scheme, "https")
+
 
 class TestHttpClientValidation(unittest.TestCase):
     def test_timeout_must_be_positive(self):
