@@ -132,6 +132,11 @@ class TestHttpClientValidation(unittest.TestCase):
         with self.assertRaises(TypeError):
             _ = HttpClient("example.org", verify=object())
 
+    def test_verify_as_nonempty_string_is_accepted(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", verify="/path/to/ca.pem", session=s)
+        self.assertEqual(c.verify, "/path/to/ca.pem")
+
 
 class TestHttpClientRequest(unittest.TestCase):
     def test_request_passes_through_common_arguments(self):
