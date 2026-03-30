@@ -55,6 +55,10 @@ class TestHttpError(unittest.TestCase):
             "POST https://example.test/submit | status=500 | boom",
         )
 
+    def test_str_with_status_but_no_message(self):
+        err = HttpError(method="GET", url="https://x.test", status_code=204)
+        self.assertEqual(str(err), "GET https://x.test | status=204")
+
     def test_str_omits_status_and_message_when_absent(self):
         err = HttpError(method="DELETE", url="https://example.test/item/1")
         self.assertEqual(str(err), "DELETE https://example.test/item/1")
