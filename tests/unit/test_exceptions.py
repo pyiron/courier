@@ -1,3 +1,4 @@
+from dataclasses import fields
 import unittest
 
 from courier.exceptions import (
@@ -19,6 +20,11 @@ class TestExceptionHierarchy(unittest.TestCase):
 
 
 class TestHttpError(unittest.TestCase):
+    def test_http_error_is_a_dataclass(self):
+        names = [field.name for field in fields(HttpError)]
+        self.assertIn("method", names)
+        self.assertIn("payload", names)
+
     def test_fields_roundtrip(self):
         err = HttpError(
             method="GET",
