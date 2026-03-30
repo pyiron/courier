@@ -128,6 +128,11 @@ class TestHttpClientInit(unittest.TestCase):
         c = HttpClient("example.org", timeout=5, session=s)
         self.assertEqual(c.timeout, 5.0)
 
+    def test_verify_property_returns_validated_value(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", verify=False, session=s)
+        self.assertFalse(c.verify)
+
 
 class TestHttpClientValidation(unittest.TestCase):
     def test_timeout_must_be_positive(self):
