@@ -96,6 +96,11 @@ class TestHttpClientInit(unittest.TestCase):
         _ = HttpClient("example.org", token=None, session=s)
         self.assertIsNone(s.headers.get("Authorization"))
 
+    def test_address_property(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", session=s)
+        self.assertEqual(c.address, "example.org")
+
 
 class TestHttpClientValidation(unittest.TestCase):
     def test_timeout_must_be_positive(self):
