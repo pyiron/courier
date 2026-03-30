@@ -17,3 +17,13 @@ class TestVersion(unittest.TestCase):
 
         self.assertEqual(reloaded.__version__, "1.2.3")
         importlib.reload(courier)
+
+    def test_version_falls_back_when_package_metadata_is_missing(self):
+        with mock.patch(
+            "importlib.metadata.version",
+            side_effect=importlib.metadata.PackageNotFoundError,
+        ):
+            reloaded = importlib.reload(courier)
+
+        self.assertEqual(reloaded.__version__, "0.0.0+unknown")
+        importlib.reload(courier)
