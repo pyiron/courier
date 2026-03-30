@@ -118,6 +118,10 @@ class TestHttpClientValidation(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = HttpClient("example.org", default_scheme="ftp")
 
+    def test_empty_default_scheme_raises(self):
+        with self.assertRaises(ValueError):
+            _ = HttpClient("example.org", default_scheme="")
+
     def test_verify_must_be_bool_or_nonempty_string(self):
         with self.assertRaises(ValueError):
             _ = HttpClient("example.org", verify="")
