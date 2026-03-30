@@ -91,6 +91,13 @@ class TestHttpClientInit(unittest.TestCase):
         c.token = None
         self.assertIsNone(s.headers.get("Authorization"))
 
+    def test_token_set_to_whitespace_only_clears(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", token="abc", session=s)
+        c.token = "   "
+        self.assertIsNone(c.token)
+        self.assertIsNone(s.headers.get("Authorization"))
+
     def test_no_authorization_header_when_token_is_none(self):
         s = _FakeSession()
         _ = HttpClient("example.org", token=None, session=s)
