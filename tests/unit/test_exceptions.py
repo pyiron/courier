@@ -1,5 +1,5 @@
-from dataclasses import fields
 import unittest
+from dataclasses import fields
 
 from courier.exceptions import (
     CourierError,
