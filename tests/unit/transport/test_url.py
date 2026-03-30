@@ -32,6 +32,9 @@ class TestNormalizeBaseUrl(unittest.TestCase):
             "http:example.org",
         )
 
+    def test_no_netloc_after_construction_raises(self):
+        self.assertRaises(InvalidAddressError, normalize_base_url, "https:///path")
+
     def test_path_query_fragment_rejected_by_default(self):
         cases = [
             "https://example.org/api",
