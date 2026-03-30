@@ -114,6 +114,10 @@ class TestHttpClientValidation(unittest.TestCase):
         with self.assertRaises(TypeError):
             _ = HttpClient("example.org", timeout=False)
 
+    def test_timeout_tuple_with_non_numeric_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            _ = HttpClient("example.org", timeout=("a", "b"))
+
     def test_default_scheme_is_validated(self):
         with self.assertRaises(ValueError):
             _ = HttpClient("example.org", default_scheme="ftp")
