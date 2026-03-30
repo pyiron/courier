@@ -25,6 +25,13 @@ class TestNormalizeBaseUrl(unittest.TestCase):
     def test_disallowed_scheme_raises(self):
         self.assertRaises(InvalidAddressError, normalize_base_url, "ftp://example.org")
 
+    def test_malformed_scheme_without_double_slash_raises(self):
+        self.assertRaises(
+            InvalidAddressError,
+            normalize_base_url,
+            "http:example.org",
+        )
+
     def test_path_query_fragment_rejected_by_default(self):
         cases = [
             "https://example.org/api",
