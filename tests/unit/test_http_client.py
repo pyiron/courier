@@ -118,6 +118,11 @@ class TestHttpClientInit(unittest.TestCase):
         c = HttpClient("example.org", token="abc", session=s)
         self.assertEqual(c.token, "abc")
 
+    def test_session_property_returns_injected_session(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", session=s)
+        self.assertIs(c.session, s)
+
 
 class TestHttpClientValidation(unittest.TestCase):
     def test_timeout_must_be_positive(self):
