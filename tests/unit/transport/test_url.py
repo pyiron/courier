@@ -8,7 +8,9 @@ class TestNormalizeBaseUrl(unittest.TestCase):
     def test_blank_address_raises(self):
         for addr in ["", " ", "\n\t"]:
             with self.subTest(addr=addr):
-                self.assertRaises(InvalidAddressError, normalize_base_url, addr)
+                with self.assertRaises(InvalidAddressError) as ctx:
+                    normalize_base_url(addr)
+                self.assertIn("non-empty", str(ctx.exception))
 
     def test_host_only_gets_default_scheme(self):
         self.assertEqual(normalize_base_url("example.org"), "https://example.org")
@@ -23,17 +25,16 @@ class TestNormalizeBaseUrl(unittest.TestCase):
         self.assertEqual(normalize_base_url("http://example.org"), "http://example.org")
 
     def test_disallowed_scheme_raises(self):
-        self.assertRaises(InvalidAddressError, normalize_base_url, "ftp://example.org")
+        with self.assertRaisesRegex(InvalidAddressError, "Unsupported URL scheme"):
+            normalize_base_url("ftp://example.org")
 
     def test_malformed_scheme_without_double_slash_raises(self):
-        self.assertRaises(
-            InvalidAddressError,
-            normalize_base_url,
-            "http:example.org",
-        )
+        with self.assertRaisesRegex(InvalidAddressError, "malformed"):
+            normalize_base_url("http:example.org")
 
     def test_no_netloc_after_construction_raises(self):
-        self.assertRaises(InvalidAddressError, normalize_base_url, "https:///path")
+        with self.assertRaisesRegex(InvalidAddressError, "host"):
+            normalize_base_url("https:///path")
 
     def test_path_query_fragment_rejected_by_default(self):
         cases = [
@@ -44,7 +45,9 @@ class TestNormalizeBaseUrl(unittest.TestCase):
         ]
         for addr in cases:
             with self.subTest(addr=addr):
-                self.assertRaises(InvalidAddressError, normalize_base_url, addr)
+                with self.assertRaises(InvalidAddressError) as ctx:
+                    normalize_base_url(addr)
+                self.assertIn("path", str(ctx.exception))
 
     def test_path_query_fragment_allowed_when_require_host_only_false(self):
         self.assertEqual(
