@@ -1,5 +1,6 @@
 import importlib
 import unittest
+from importlib.metadata import PackageNotFoundError
 from unittest import mock
 
 import courier
@@ -21,7 +22,7 @@ class TestVersion(unittest.TestCase):
     def test_version_falls_back_when_package_metadata_is_missing(self):
         with mock.patch(
             "importlib.metadata.version",
-            side_effect=importlib.metadata.PackageNotFoundError,
+            side_effect=PackageNotFoundError,
         ):
             reloaded = importlib.reload(courier)
 
