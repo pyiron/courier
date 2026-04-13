@@ -219,8 +219,11 @@ class TestDatasetsResource(unittest.TestCase):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
-        with self.assertRaises(FileNotFoundError):
-            _ = c.datasets.upload_turtlefile("ds", "/nonexistent/path.ttl")
+        with TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "missing.ttl"
+
+            with self.assertRaises(FileNotFoundError):
+                _ = c.datasets.upload_turtlefile("ds", str(missing))
 
     def test_upload_turtlefile_uses_post_with_file_field(self):
         s = _FakeSession()
