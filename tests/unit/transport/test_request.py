@@ -103,7 +103,10 @@ class TestReadJson(unittest.TestCase):
             _ = read_json(resp)
 
         self.assertTrue(resp.raise_for_status_called)
-        self.assertFalse(resp.json_called)
+        self.assertFalse(
+            resp.json_called,
+            msg="read_json() should not attempt JSON decoding after HTTP status handling fails",
+        )
 
         err = ctx.exception
         self.assertIsInstance(err.__cause__, requests.HTTPError)
