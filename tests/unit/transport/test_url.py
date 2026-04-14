@@ -62,8 +62,11 @@ class TestNormalizeBaseUrl(unittest.TestCase):
 class TestJoinUrl(unittest.TestCase):
     def test_blank_base_raises(self):
         for base in ["", " ", "\n"]:
-            with self.subTest(base=base):
-                self.assertRaises(ValidationError, join_url, base, segments=["api"])
+            with (
+                self.subTest(base=base),
+                self.assertRaisesRegex(ValidationError, "non-empty URL"),
+            ):
+                join_url(base, segments=["api"])
 
     def test_join_normalizes_slashes(self):
         self.assertEqual(
