@@ -62,15 +62,15 @@ class TestParseEndpointsResponse(unittest.TestCase):
         self.assertEqual(result, ["http://example.com/path"])
 
     def test_invalid_literal_raises_value_error(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "Failed to parse endpoints response"):
             _compat.parse_endpoints_response("not a valid literal", rectify=False)
 
     def test_non_list_raises_value_error(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"did not parse to list\[str\]"):
             _compat.parse_endpoints_response("{'a': 1}", rectify=False)
 
     def test_list_of_non_strings_raises_value_error(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"did not parse to list\[str\]"):
             _compat.parse_endpoints_response("[1, 2, 3]", rectify=False)
 
 
@@ -91,7 +91,7 @@ class TestExtractDatasetNames(unittest.TestCase):
         self.assertEqual(_compat.extract_dataset_names(endpoints), ["ds1", "ds2"])
 
     def test_unexpected_format_raises_value_error(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "Unexpected SPARQL endpoint format"):
             _compat.extract_dataset_names(["https://example.com/wrong/path"])
 
     def test_trailing_slash_handled(self):
