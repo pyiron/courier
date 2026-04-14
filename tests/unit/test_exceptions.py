@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import fields
 
 from courier.exceptions import (
     CourierError,
@@ -19,6 +20,11 @@ class TestExceptionHierarchy(unittest.TestCase):
 
 
 class TestHttpError(unittest.TestCase):
+    def test_http_error_is_a_dataclass(self):
+        names = [field.name for field in fields(HttpError)]
+        self.assertIn("method", names)
+        self.assertIn("payload", names)
+
     def test_fields_roundtrip(self):
         err = HttpError(
             method="GET",
@@ -48,6 +54,10 @@ class TestHttpError(unittest.TestCase):
             str(err),
             "POST https://example.test/submit | status=500 | boom",
         )
+
+    def test_str_with_status_but_no_message(self):
+        err = HttpError(method="GET", url="https://x.test", status_code=204)
+        self.assertEqual(str(err), "GET https://x.test | status=204")
 
     def test_str_omits_status_and_message_when_absent(self):
         err = HttpError(method="DELETE", url="https://example.test/item/1")

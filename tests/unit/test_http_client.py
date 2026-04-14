@@ -91,10 +91,47 @@ class TestHttpClientInit(unittest.TestCase):
         c.token = None
         self.assertIsNone(s.headers.get("Authorization"))
 
+    def test_token_set_to_whitespace_only_clears(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", token="abc", session=s)
+        c.token = "   "
+        self.assertIsNone(c.token)
+        self.assertIsNone(s.headers.get("Authorization"))
+
     def test_no_authorization_header_when_token_is_none(self):
         s = _FakeSession()
         _ = HttpClient("example.org", token=None, session=s)
         self.assertIsNone(s.headers.get("Authorization"))
+
+    def test_address_property(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", session=s)
+        self.assertEqual(c.address, "example.org")
+
+    def test_default_scheme_property(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", session=s)
+        self.assertEqual(c.default_scheme, "https")
+
+    def test_token_property_getter(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", token="abc", session=s)
+        self.assertEqual(c.token, "abc")
+
+    def test_session_property_returns_injected_session(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", session=s)
+        self.assertIs(c.session, s)
+
+    def test_timeout_property_returns_validated_value(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", timeout=5, session=s)
+        self.assertEqual(c.timeout, 5.0)
+
+    def test_verify_property_returns_validated_value(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", verify=False, session=s)
+        self.assertFalse(c.verify)
 
 
 class TestHttpClientValidation(unittest.TestCase):
@@ -114,15 +151,28 @@ class TestHttpClientValidation(unittest.TestCase):
         with self.assertRaises(TypeError):
             _ = HttpClient("example.org", timeout=False)
 
+    def test_timeout_tuple_with_non_numeric_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            _ = HttpClient("example.org", timeout=("a", "b"))
+
     def test_default_scheme_is_validated(self):
         with self.assertRaises(ValueError):
             _ = HttpClient("example.org", default_scheme="ftp")
+
+    def test_empty_default_scheme_raises(self):
+        with self.assertRaises(ValueError):
+            _ = HttpClient("example.org", default_scheme="")
 
     def test_verify_must_be_bool_or_nonempty_string(self):
         with self.assertRaises(ValueError):
             _ = HttpClient("example.org", verify="")
         with self.assertRaises(TypeError):
             _ = HttpClient("example.org", verify=object())
+
+    def test_verify_as_nonempty_string_is_accepted(self):
+        s = _FakeSession()
+        c = HttpClient("example.org", verify="/path/to/ca.pem", session=s)
+        self.assertEqual(c.verify, "/path/to/ca.pem")
 
 
 class TestHttpClientRequest(unittest.TestCase):

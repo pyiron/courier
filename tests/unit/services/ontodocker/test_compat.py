@@ -41,6 +41,10 @@ class TestParseEndpointsResponse(unittest.TestCase):
         result = _compat.parse_endpoints_response(text, rectify=False)
         self.assertEqual(result, ["https://example.com/api/v1/jena/ds/sparql"])
 
+    def test_parse_endpoints_response_empty_list(self):
+        result = _compat.parse_endpoints_response("[]", rectify=False)
+        self.assertEqual(result, [])
+
     def test_multiple_endpoints(self):
         text = "['https://a.com/api/v1/jena/ds1/sparql', 'https://b.com/api/v1/jena/ds2/sparql']"
         result = _compat.parse_endpoints_response(text, rectify=False)
