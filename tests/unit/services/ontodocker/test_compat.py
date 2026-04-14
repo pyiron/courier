@@ -125,7 +125,11 @@ class TestMakeDataframe(unittest.TestCase):
             }
         }
         df = _compat.make_dataframe(result, ["x", "y"])
-        self.assertEqual(list(df.columns), ["x", "y"])
+        self.assertEqual(
+            list(df.columns),
+            ["x", "y"],
+            msg="make_dataframe() should preserve the requested column order",
+        )
 
     def test_empty_bindings(self):
         result = self._make_result(["a", "b"], [])
