@@ -447,7 +447,10 @@ class TestSparqlResource(unittest.TestCase):
         self.assertIsInstance(df, pd.DataFrame)
         self.assertEqual(list(df.columns), ["a", "b"])
         self.assertEqual(df.iloc[0]["a"], "1")
-        self.assertTrue(pd.isna(df.iloc[0]["b"]))
+        self.assertTrue(
+            pd.isna(df.iloc[0]["b"]),
+            msg="missing SPARQL bindings should map to None/NaN in the dataframe",
+        )
         self.assertTrue(pd.isna(df.iloc[1]["a"]))
         self.assertEqual(df.iloc[1]["b"], "2")
         self.assertEqual(
