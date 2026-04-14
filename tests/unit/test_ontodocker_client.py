@@ -188,9 +188,11 @@ class TestDatasetsResource(unittest.TestCase):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "dataset name must be non-empty"):
             _ = c.datasets.download_turtle("", Path("out.ttl"))
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(
+            ValidationError, "filename must be a non-empty path"
+        ):
             _ = c.datasets.download_turtle("ds", "   ")
 
     def test_download_turtle_writes_file_when_requested(self):
@@ -209,10 +211,12 @@ class TestDatasetsResource(unittest.TestCase):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "dataset name must be non-empty"):
             _ = c.datasets.upload_turtlefile("", "x.ttl")
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(
+            ValidationError, "turtlefile must be a non-empty path"
+        ):
             _ = c.datasets.upload_turtlefile("ds", "")
 
     def test_upload_turtlefile_missing_file_raises_file_not_found(self):
@@ -254,7 +258,7 @@ class TestDatasetsResource(unittest.TestCase):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "rdflib.Graph instance"):
             _ = c.datasets.upload_graph("ds", object())
 
     def test_upload_graph_propagates_serialize_errors(self):
@@ -312,7 +316,7 @@ class TestSparqlResource(unittest.TestCase):
     def test_endpoint_validates_dataset(self):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "dataset must be non-empty"):
             _ = c.sparql.endpoint("")
 
     def test_endpoint_builds_url(self):
@@ -327,10 +331,10 @@ class TestSparqlResource(unittest.TestCase):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "dataset must be non-empty"):
             _ = c.sparql.query_raw("", "SELECT * WHERE {}")
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "query must be non-empty"):
             _ = c.sparql.query_raw("ds", "")
 
     def test_query_raw_uses_get_with_query_param_and_accept_header(self):
@@ -359,22 +363,30 @@ class TestSparqlResource(unittest.TestCase):
         s = _FakeSession()
         c = OntodockerClient("https://example.org", session=s)
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "dataset must be non-empty"):
             _ = c.sparql.query_df("", "SELECT ?a WHERE {}", columns=["a"])
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "query must be non-empty"):
             _ = c.sparql.query_df("ds", "", columns=["a"])
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(
+            ValidationError, "columns must be a non-empty list of strings"
+        ):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=[])
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(
+            ValidationError, "columns must be a non-empty list of strings"
+        ):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=["a", " "])
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(
+            ValidationError, "columns must be a non-empty list of strings"
+        ):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=["a", 1])
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(
+            ValidationError, "columns must be a non-empty list of strings"
+        ):
             _ = c.sparql.query_df("ds", "SELECT ?a WHERE {}", columns=("a",))
 
     def test_query_df_raises_json_decode_error_on_invalid_json(self):
