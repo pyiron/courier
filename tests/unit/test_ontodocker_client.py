@@ -488,7 +488,11 @@ class TestSparqlResource(unittest.TestCase):
             {"Accept": "application/sparql-results+json"},
         )
         # token is handled by HttpClient via session headers, not per-request
-        self.assertEqual(s.headers.get("Authorization"), "Bearer abc")
+        self.assertEqual(
+            s.headers.get("Authorization"),
+            "Bearer abc",
+            msg="token-based auth should be stored on session headers for SPARQL requests",
+        )
 
 
 if __name__ == "__main__":
