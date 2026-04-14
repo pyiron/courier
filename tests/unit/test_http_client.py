@@ -136,37 +136,37 @@ class TestHttpClientInit(unittest.TestCase):
 
 class TestHttpClientValidation(unittest.TestCase):
     def test_timeout_must_be_positive(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"timeout must be > 0"):
             _ = HttpClient("example.org", timeout=0)
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"timeout must be > 0"):
             _ = HttpClient("example.org", timeout=-1)
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"both values > 0"):
             _ = HttpClient("example.org", timeout=(1, 0))
 
     def test_timeout_type_is_checked(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, r"length 2"):
             _ = HttpClient("example.org", timeout=(1, 2, 3))
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, r"length 2"):
             _ = HttpClient("example.org", timeout=True)
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, r"length 2"):
             _ = HttpClient("example.org", timeout=False)
 
     def test_timeout_tuple_with_non_numeric_raises_type_error(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, r"numeric values"):
             _ = HttpClient("example.org", timeout=("a", "b"))
 
     def test_default_scheme_is_validated(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"must be one of"):
             _ = HttpClient("example.org", default_scheme="ftp")
 
     def test_empty_default_scheme_raises(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"non-empty string"):
             _ = HttpClient("example.org", default_scheme="")
 
     def test_verify_must_be_bool_or_nonempty_string(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, r"empty string"):
             _ = HttpClient("example.org", verify="")
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, r"bool or a non-empty string"):
             _ = HttpClient("example.org", verify=object())
 
     def test_verify_as_nonempty_string_is_accepted(self):
