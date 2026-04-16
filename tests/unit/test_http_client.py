@@ -191,7 +191,11 @@ class TestHttpClientRequest(unittest.TestCase):
             stream=True,
         )
 
-        self.assertEqual(len(s.calls), 1)
+        self.assertEqual(
+            len(s.calls),
+            1,
+            msg="request() should delegate to session.request() exactly once",
+        )
         call = s.calls[0]
         self.assertEqual(call["method"], "POST")
         self.assertEqual(call["url"], "https://example.org/api")
