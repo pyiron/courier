@@ -27,4 +27,4 @@ jobs:
       # load sectrets as environment variables
       notebooks-secret-env-map: |
         HTTPCLIENT_TOKEN
-        HTTPKLIEN_ADDRESS
+        HTTPCLIENT_ADDRESS
