@@ -26,5 +26,5 @@ jobs:
       alternate-tests-dir: tests/unit
       # load sectrets as environment variables
       notebooks-secret-env-map: |
-        HTTPCLIENT_TOKEN
-        HTTPCLIENT_ADDRESS
+        HTTPCLIENT_TOKEN=ONTODOCKERCLIENT_TOKEN
+        HTTPCLIENT_ADDRESS=ONTODOCKERCLIENT_ADDRESS
