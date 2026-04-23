@@ -9,7 +9,7 @@ on:
 
 jobs:
   pyiron:
-    uses: pyiron/actions/.github/workflows/push-pull.yml@actions-4.0.10
+    uses: pyiron/actions/.github/workflows/push-pull.yml@notebook-envvars
     secrets: inherit
     with:
       do-coveralls: false
@@ -24,3 +24,7 @@ jobs:
       alternate-tests-env-files: .ci_support/lower-bounds.yml
       alternate-tests-python-version: '3.11'
       alternate-tests-dir: tests/unit
+      # load sectrets as environment variables
+      notebooks-secret-env-map: |
+        HTTPCLIENT_TOKEN
+        HTTPKLIEN_ADDRESS
