@@ -24,7 +24,7 @@ jobs:
       alternate-tests-env-files: .ci_support/lower-bounds.yml
       alternate-tests-python-version: '3.11'
       alternate-tests-dir: tests/unit
-      # load sectrets as environment variables
+      # load secrets as environment variables
       notebooks-secret-env-map: |
         HTTPCLIENT_TOKEN=ONTODOCKERCLIENT_TOKEN
         HTTPCLIENT_ADDRESS=ONTODOCKERCLIENT_ADDRESS
