@@ -9,7 +9,7 @@ on:
 
 jobs:
   pyiron:
-    uses: pyiron/actions/.github/workflows/push-pull.yml@notebook-envvars
+    uses: pyiron/actions/.github/workflows/push-pull.yml@actions-4.1.0
     secrets: inherit
     with:
       do-coveralls: false
