@@ -1,5 +1,8 @@
-# tools for building urls
-from urllib.parse import urlsplit, urlunsplit
+"""Tools for normalizing and composing URLs."""
+
+from __future__ import annotations
+
+from urllib.parse import quote, urlsplit, urlunsplit
 
 from courier.exceptions import InvalidAddressError, ValidationError
 
@@ -119,3 +122,19 @@ def join_url(base: str, *, segments: list[str]) -> str:
     base = base.strip().rstrip("/")
     cleaned = [s.strip("/") for s in segments if s and s.strip().strip("/")]
     return base + ("/" + "/".join(cleaned) if cleaned else "")
+
+
+def quote_path_segment(value: object, *, field_name: str = "path segment") -> str:
+    """Validate and quote one URL path segment.
+
+    This is intentionally separate from `join_url`: many existing callers pass
+    trusted literal path components and should not be forced into new escaping
+    behavior. User- or API-provided identifiers should use this helper before
+    being passed as a path segment.
+    """
+    if value is None:
+        raise ValidationError(f"{field_name} must be non-empty")
+    text = str(value).strip()
+    if not text:
+        raise ValidationError(f"{field_name} must be non-empty")
+    return quote(text, safe="")

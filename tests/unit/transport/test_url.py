@@ -1,7 +1,7 @@
 import unittest
 
 from courier.exceptions import InvalidAddressError, ValidationError
-from courier.transport.url import join_url, normalize_base_url
+from courier.transport.url import join_url, normalize_base_url, quote_path_segment
 
 
 class TestNormalizeBaseUrl(unittest.TestCase):
@@ -84,6 +84,20 @@ class TestJoinUrl(unittest.TestCase):
         self.assertEqual(
             join_url("https://example.org/", segments=[]), "https://example.org"
         )
+
+
+class TestQuotePathSegment(unittest.TestCase):
+    def test_quotes_reserved_characters(self):
+        self.assertEqual(quote_path_segment("my file.zip"), "my%20file.zip")
+        self.assertEqual(quote_path_segment("a/b"), "a%2Fb")
+
+    def test_blank_segment_raises(self):
+        with self.assertRaisesRegex(ValidationError, "filename"):
+            quote_path_segment("  ", field_name="filename")
+
+    def test_none_segment_raises(self):
+        with self.assertRaisesRegex(ValidationError, "filename"):
+            quote_path_segment(None, field_name="filename")
 
 
 if __name__ == "__main__":
