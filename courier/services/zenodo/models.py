@@ -122,7 +122,7 @@ class ZenodoFieldError:
 def _optional_string(value: object) -> str | None:
     if value is None:
         return None
-    text = str(value)
+    text = str(value).strip()
     return text or None
 
 
