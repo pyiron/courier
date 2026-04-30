@@ -174,8 +174,9 @@ class TestZenodoMetadata(unittest.TestCase):
         ]
 
         for metadata, message in cases:
-            with self.subTest(message=message), self.assertRaisesRegex(
-                ValidationError, message
+            with (
+                self.subTest(message=message),
+                self.assertRaisesRegex(ValidationError, message),
             ):
                 metadata.validate()
 
@@ -333,8 +334,9 @@ class TestZenodoMetadata(unittest.TestCase):
         ]
 
         for payload, message in cases:
-            with self.subTest(payload=payload), self.assertRaisesRegex(
-                ValidationError, message
+            with (
+                self.subTest(payload=payload),
+                self.assertRaisesRegex(ValidationError, message),
             ):
                 ZenodoMetadata.from_dict(payload)
 
