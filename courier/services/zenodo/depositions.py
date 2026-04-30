@@ -125,7 +125,10 @@ def _metadata_payload(
         return {}
     if isinstance(metadata, ZenodoMetadata):
         return metadata.to_payload()
-    return {"metadata": dict(metadata)}
+    payload = dict(metadata)
+    if isinstance(payload.get("metadata"), Mapping):
+        return payload
+    return {"metadata": payload}
 
 
 def _deposition_id(deposition: int | str | DepositionInfo) -> int | str:

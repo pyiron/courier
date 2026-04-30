@@ -62,6 +62,28 @@ class TestDepositionsResource(unittest.TestCase):
             {"metadata": {"prereserve_doi": True}},
         )
 
+    def test_create_preserves_wrapped_raw_metadata_payload(self):
+        session = FakeSession([FakeResponse(json_value=deposition_payload())])
+        c = ZenodoClient(session=cast(Any, session))
+
+        _ = c.depositions.create({"metadata": {"title": "Draft"}})
+
+        self.assertEqual(session.calls[0]["json"], {"metadata": {"title": "Draft"}})
+
+    def test_create_adds_prereserved_doi_to_wrapped_raw_metadata_payload(self):
+        session = FakeSession([FakeResponse(json_value=deposition_payload())])
+        c = ZenodoClient(session=cast(Any, session))
+
+        _ = c.depositions.create(
+            {"metadata": {"title": "Draft"}},
+            prereserve_doi=True,
+        )
+
+        self.assertEqual(
+            session.calls[0]["json"],
+            {"metadata": {"title": "Draft", "prereserve_doi": True}},
+        )
+
     def test_create_serializes_metadata_model(self):
         metadata = ZenodoMetadata.software()
         metadata.title = "courier"
@@ -103,6 +125,14 @@ class TestDepositionsResource(unittest.TestCase):
             session.calls[0]["url"],
             "https://zenodo.org/api/deposit/depositions/42",
         )
+        self.assertEqual(session.calls[0]["json"], {"metadata": {"title": "Draft"}})
+
+    def test_set_metadata_preserves_wrapped_raw_metadata_payload(self):
+        session = FakeSession([FakeResponse(json_value=deposition_payload())])
+        c = ZenodoClient(session=cast(Any, session))
+
+        _ = c.depositions.set_metadata(42, {"metadata": {"title": "Draft"}})
+
         self.assertEqual(session.calls[0]["json"], {"metadata": {"title": "Draft"}})
 
     def test_publish_posts_to_action_endpoint(self):
