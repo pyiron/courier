@@ -3,6 +3,7 @@ from typing import Any, cast
 
 from courier.exceptions import ValidationError
 from courier.services.zenodo import ZenodoClient
+from courier.services.zenodo.models import LicenseInfo
 
 from ._helpers import FakeResponse, FakeSession
 
@@ -113,6 +114,18 @@ class TestLicensesResource(unittest.TestCase):
 
         self.assertEqual(license_info.title, "Benutzerdefinierte Lizenz")
         self.assertEqual(license_info.url, "https://example.org/license")
+
+    def test_license_info_accepts_title_fallbacks(self):
+        cases = [
+            ({"en": ""}, ""),
+            (None, ""),
+            ("Plain title", "Plain title"),
+        ]
+
+        for title, expected in cases:
+            with self.subTest(title=title):
+                license_info = LicenseInfo.from_dict({"id": "custom", "title": title})
+                self.assertEqual(license_info.title, expected)
 
 
 if __name__ == "__main__":
