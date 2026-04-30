@@ -199,7 +199,9 @@ class ZenodoMetadata:
             data["prereserve_doi"] = self.prereserve_doi
         if self.keywords:
             keywords = [
-                keyword.strip() for keyword in self.keywords if keyword and keyword.strip()
+                keyword.strip()
+                for keyword in self.keywords
+                if keyword and keyword.strip()
             ]
             if keywords:
                 data["keywords"] = keywords
