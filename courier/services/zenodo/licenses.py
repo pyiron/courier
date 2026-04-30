@@ -34,9 +34,8 @@ class LicensesResource:
                 "GET", licenses_url(self.client.base_url), params=params
             )
         )
-        if not isinstance(payload, list):
-            raise ValidationError("Zenodo licenses response must be a list")
-        return [LicenseInfo.from_dict(item) for item in payload]
+        items = _license_items(payload)
+        return [LicenseInfo.from_dict(item) for item in items]
 
     def get(self, license_id: str) -> LicenseInfo:
         """Retrieve one Zenodo license."""
@@ -49,3 +48,25 @@ class LicensesResource:
 def _compact_params(**params: Any) -> dict[str, Any] | None:
     compact = {key: value for key, value in params.items() if value is not None}
     return compact or None
+
+
+def _license_items(payload: Any) -> list[dict[str, Any]]:
+    if not isinstance(payload, dict):
+        raise ValidationError("Zenodo licenses response must be an object")
+
+    hits = payload.get("hits")
+    if not isinstance(hits, dict):
+        raise ValidationError("Zenodo licenses response must include hits")
+
+    items = hits.get("hits")
+    if not isinstance(items, list):
+        raise ValidationError(
+            "Zenodo licenses response must include hits.hits as a list"
+        )
+
+    out: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict):
+            raise ValidationError("Zenodo license entries must be objects")
+        out.append(item)
+    return out

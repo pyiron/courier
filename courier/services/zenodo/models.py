@@ -106,8 +106,8 @@ class LicenseInfo:
     def from_dict(cls, data: dict[str, Any]) -> LicenseInfo:
         return cls(
             id=str(data["id"]),
-            title=str(data.get("title", "")),
-            url=_optional_string(data.get("url")),
+            title=_localized_text(data.get("title")),
+            url=_optional_string(_license_url(data)),
         )
 
 
@@ -132,3 +132,24 @@ def _optional_int(value: object) -> int | None:
     if isinstance(value, int):
         return value
     return int(str(value))
+
+
+def _localized_text(value: object) -> str:
+    if isinstance(value, dict):
+        english = value.get("en")
+        if isinstance(english, str) and english:
+            return english
+        for item in value.values():
+            if isinstance(item, str) and item:
+                return item
+        return ""
+    if value is None:
+        return ""
+    return str(value)
+
+
+def _license_url(data: dict[str, Any]) -> object:
+    props = data.get("props")
+    if isinstance(props, dict):
+        return props.get("url")
+    return data.get("url")

@@ -75,13 +75,18 @@ def deposition_file_url(
 
 
 def licenses_url(base_url: str) -> str:
-    return join_url(base_url, segments=["api", "licenses"])
+    return join_url(base_url, segments=["api", "vocabularies", "licenses"])
 
 
 def license_url(base_url: str, license_id: str) -> str:
     return join_url(
         base_url,
-        segments=["api", "licenses", quote_path_segment(license_id, field_name="id")],
+        segments=[
+            "api",
+            "vocabularies",
+            "licenses",
+            quote_path_segment(license_id, field_name="id"),
+        ],
     )
 
 
