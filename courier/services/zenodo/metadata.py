@@ -198,7 +198,11 @@ class ZenodoMetadata:
         if self.prereserve_doi is not None:
             data["prereserve_doi"] = self.prereserve_doi
         if self.keywords:
-            data["keywords"] = [keyword for keyword in self.keywords if keyword]
+            keywords = [
+                keyword.strip() for keyword in self.keywords if keyword and keyword.strip()
+            ]
+            if keywords:
+                data["keywords"] = keywords
         _add_if_present(data, "notes", self.notes)
         if self.related_identifiers:
             data["related_identifiers"] = [
