@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from builtins import list as builtin_list
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -66,7 +67,7 @@ class FilesResource:
         self,
         deposition: int | str | DepositionInfo,
         paths: Sequence[str | Path],
-    ) -> list[UploadedFileInfo]:
+    ) -> builtin_list[UploadedFileInfo]:
         """Upload multiple files to a deposition."""
         return [self.upload(deposition, path) for path in paths]
 
