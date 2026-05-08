@@ -9,8 +9,10 @@ except importlib.metadata.PackageNotFoundError:
 
 from courier.http_client import HttpClient
 from courier.services.ontodocker import OntodockerClient
+from courier.services.zenodo import ZenodoClient
 
 __all__ = [
     "HttpClient",
     "OntodockerClient",
+    "ZenodoClient",
 ]
