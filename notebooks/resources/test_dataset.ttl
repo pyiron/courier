@@ -1,0 +1,20 @@
+@base <http://example.org/> .
+@prefix ex:   <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Tiny schema ---
+ex:Person   a rdfs:Class ;   rdfs:label "Person"@en .
+ex:Project  a rdfs:Class ;   rdfs:label "Project"@en .
+ex:worksOn  a rdfs:Property ;
+    rdfs:label "works on"@en ;
+    rdfs:domain ex:Person ;
+    rdfs:range  ex:Project .
+
+# --- Tiny data ---
+ex:alice a ex:Person ;
+    rdfs:label "Alice"@en ;
+    ex:worksOn ex:projectX .
+
+ex:projectX a ex:Project ;
+    rdfs:label "Project X"@en .
