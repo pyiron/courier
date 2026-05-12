@@ -133,7 +133,9 @@ class TestZenodoMetadata(unittest.TestCase):
 
     def test_required_fields_are_validated(self):
         md = ZenodoMetadata.software()
-        with self.assertRaisesRegex(ValidationError, "title must be a non-empty string"):
+        with self.assertRaisesRegex(
+            ValidationError, "title must be a non-empty string"
+        ):
             md.validate()
 
     def test_open_access_requires_license(self):
