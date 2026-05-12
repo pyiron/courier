@@ -338,6 +338,8 @@ def _optional_date_value(value: object) -> date | str | None:
 
 
 def _date_string(value: date | str | None, field_name: str) -> str:
+    if value is None:
+        value = date.today()
     if isinstance(value, date):
         return value.isoformat()
     text = _required_string(value, field_name)
