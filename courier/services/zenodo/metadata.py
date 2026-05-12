@@ -141,7 +141,7 @@ class ZenodoMetadata:
     communities: list[CommunityRef] = field(default_factory=list)
     grants: list[GrantRef] = field(default_factory=list)
     version: str | None = None
-    language: str | None = None
+    language: str | None = "eng"
 
     def validate(self) -> None:
         """Validate local metadata requirements before submission."""
