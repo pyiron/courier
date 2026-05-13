@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 from courier.exceptions import ValidationError
 from courier.services.zenodo._response import read_zenodo_json, read_zenodo_text
@@ -19,6 +19,10 @@ from courier.services.zenodo.models import DepositionInfo, UploadedFileInfo
 if TYPE_CHECKING:
     from courier.services.zenodo.client import ZenodoClient
 
+UploadPath: TypeAlias = str | Path
+UploadPaths: TypeAlias = UploadPath | Sequence[UploadPath]
+UploadedFiles: TypeAlias = list[UploadedFileInfo]
+
 
 @dataclass
 class FilesResource:
@@ -26,7 +30,7 @@ class FilesResource:
 
     client: ZenodoClient
 
-    def list(self, deposition: int | str | DepositionInfo) -> list[UploadedFileInfo]:
+    def list(self, deposition: int | str | DepositionInfo) -> UploadedFiles:
         """List files attached to a deposition."""
         url = deposition_files_url(self.client.base_url, _deposition_id(deposition))
         payload = read_zenodo_json(self.client.request("GET", url))
@@ -37,14 +41,14 @@ class FilesResource:
     def upload(
         self,
         deposition: int | str | DepositionInfo,
-        paths: str | Path | Sequence[str | Path],
+        paths: UploadPaths,
         *,
         filename: str | None = None,
         content_type: str | None = None,
-    ) -> list[UploadedFileInfo]:
+    ) -> UploadedFiles:
         """Upload one or more files through the deposition bucket link."""
-        paths = _upload_paths(paths)
-        single_file = len(paths) == 1
+        upload_paths = _upload_paths(paths)
+        single_file = len(upload_paths) == 1
         if not single_file:
             if filename is not None:
                 raise ValidationError(
@@ -54,11 +58,11 @@ class FilesResource:
                 raise ValidationError(
                     "content_type is only supported for single-file uploads"
                 )
-        if not paths:
+        if not upload_paths:
             return []
         filenames = [
             _upload_filename(path, filename=filename if single_file else None)
-            for path in paths
+            for path in upload_paths
         ]
 
         deposition_info = self._ensure_deposition(deposition)
@@ -73,7 +77,7 @@ class FilesResource:
                 filename=file_name,
                 content_type=content_type,
             )
-            for path, file_name in zip(paths, filenames, strict=True)
+            for path, file_name in zip(upload_paths, filenames, strict=True)
         ]
 
     def _upload_one(
@@ -135,7 +139,7 @@ def _deposition_id(deposition: int | str | DepositionInfo) -> int | str:
     return deposition
 
 
-def _upload_paths(paths: str | Path | Sequence[str | Path]) -> list[Path]:
+def _upload_paths(paths: UploadPaths) -> list[Path]:
     if isinstance(paths, str | Path):
         return [Path(paths)]
     return [Path(path) for path in paths]
