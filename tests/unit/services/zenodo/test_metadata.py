@@ -37,7 +37,7 @@ class TestZenodoMetadata(unittest.TestCase):
         md.creators.append(Creator(family_name="Doe", given_names="Jane"))
         md.add_keyword("python")
 
-        self.assertEqual(
+        self.assertDictEqual(
             md.to_payload(),
             {
                 "metadata": {
@@ -48,6 +48,7 @@ class TestZenodoMetadata(unittest.TestCase):
                     "description": "Python client.",
                     "access_right": "open",
                     "license": "Apache-2.0",
+                    "language": "eng",
                     "keywords": ["python"],
                 }
             },
@@ -132,7 +133,9 @@ class TestZenodoMetadata(unittest.TestCase):
 
     def test_required_fields_are_validated(self):
         md = ZenodoMetadata.software()
-        with self.assertRaisesRegex(ValidationError, "publication_date"):
+        with self.assertRaisesRegex(
+            ValidationError, "title must be a non-empty string"
+        ):
             md.validate()
 
     def test_open_access_requires_license(self):
@@ -164,7 +167,7 @@ class TestZenodoMetadata(unittest.TestCase):
                 "unsupported access_right",
             ),
             (
-                _valid_metadata(access_right="embargoed", embargo_date=None),
+                _valid_metadata(access_right="embargoed", embargo_date="invalid_date"),
                 "embargo_date",
             ),
             (

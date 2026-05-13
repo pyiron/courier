@@ -141,7 +141,7 @@ class ZenodoMetadata:
     communities: list[CommunityRef] = field(default_factory=list)
     grants: list[GrantRef] = field(default_factory=list)
     version: str | None = None
-    language: str | None = None
+    language: str | None = "eng"
 
     def validate(self) -> None:
         """Validate local metadata requirements before submission."""
@@ -338,6 +338,8 @@ def _optional_date_value(value: object) -> date | str | None:
 
 
 def _date_string(value: date | str | None, field_name: str) -> str:
+    if value is None:
+        value = date.today()
     if isinstance(value, date):
         return value.isoformat()
     text = _required_string(value, field_name)
