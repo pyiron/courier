@@ -140,7 +140,7 @@ def _deposition_id(deposition: int | str | DepositionInfo) -> int | str:
 
 
 def _upload_paths(paths: UploadPaths) -> list[Path]:
-    if isinstance(paths, str | Path):
+    if isinstance(paths, (str, Path)):
         return [Path(paths)]
     return [Path(path) for path in paths]
 
