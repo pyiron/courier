@@ -166,6 +166,15 @@ class TestFilesResource(unittest.TestCase):
         self.assertEqual([file.filename for file in uploaded], ["one.txt", "two.txt"])
         self.assertEqual([call["method"] for call in session.calls], ["PUT", "PUT"])
 
+    def test_upload_accepts_empty_path_sequence(self):
+        session = FakeSession()
+        c = ZenodoClient(session=cast(Any, session))
+
+        uploaded = c.files.upload(42, [])
+
+        self.assertEqual(uploaded, [])
+        self.assertEqual(session.calls, [])
+
     def test_upload_rejects_filename_for_multiple_paths(self):
         session = FakeSession()
         c = ZenodoClient(session=cast(Any, session))
