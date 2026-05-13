@@ -80,8 +80,9 @@ class TestFilesResource(unittest.TestCase):
             _ = path.write_bytes(b"payload")
             uploaded = c.files.upload(deposition, path, content_type="application/zip")
 
-        self.assertEqual(uploaded.filename, "artifact.zip")
-        self.assertEqual(uploaded.size, 123)
+        self.assertEqual(len(uploaded), 1)
+        self.assertEqual(uploaded[0].filename, "artifact.zip")
+        self.assertEqual(uploaded[0].size, 123)
         self.assertEqual(session.calls[0]["method"], "PUT")
         self.assertEqual(
             session.calls[0]["url"],
@@ -145,7 +146,7 @@ class TestFilesResource(unittest.TestCase):
         self.assertEqual(session.calls[0]["method"], "GET")
         self.assertEqual(session.calls[1]["method"], "PUT")
 
-    def test_upload_many_uploads_each_path(self):
+    def test_upload_uploads_each_path(self):
         session = FakeSession(
             [
                 FakeResponse(json_value={"key": "one.txt", "size": 1}),
@@ -160,10 +161,34 @@ class TestFilesResource(unittest.TestCase):
             second = Path(tmp) / "two.txt"
             _ = first.write_text("one")
             _ = second.write_text("two")
-            uploaded = c.files.upload_many(deposition, [first, second])
+            uploaded = c.files.upload(deposition, [first, second])
 
         self.assertEqual([file.filename for file in uploaded], ["one.txt", "two.txt"])
         self.assertEqual([call["method"] for call in session.calls], ["PUT", "PUT"])
+
+    def test_upload_rejects_filename_for_multiple_paths(self):
+        session = FakeSession()
+        c = ZenodoClient(session=cast(Any, session))
+
+        with TemporaryDirectory() as tmp:
+            first = Path(tmp) / "one.txt"
+            second = Path(tmp) / "two.txt"
+            with self.assertRaisesRegex(ValidationError, "filename"):
+                c.files.upload(42, [first, second], filename="artifact.txt")
+
+        self.assertEqual(session.calls, [])
+
+    def test_upload_rejects_content_type_for_multiple_paths(self):
+        session = FakeSession()
+        c = ZenodoClient(session=cast(Any, session))
+
+        with TemporaryDirectory() as tmp:
+            first = Path(tmp) / "one.txt"
+            second = Path(tmp) / "two.txt"
+            with self.assertRaisesRegex(ValidationError, "content_type"):
+                c.files.upload(42, [first, second], content_type="text/plain")
+
+        self.assertEqual(session.calls, [])
 
     def test_rename_uses_file_endpoint(self):
         session = FakeSession(
