@@ -24,7 +24,7 @@ classifiers = [
 dependencies = [
     "pandas==3.0.2",
     "rdflib==7.6.0",
-    "requests==2.33.1",
+    "requests==2.34.2",
     "sparqlwrapper==2.0.0",
 ]
 dynamic = [ "version",]
