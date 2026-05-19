@@ -22,7 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "pandas==3.0.2",
+    "pandas==3.0.3",
     "rdflib==7.6.0",
     "requests==2.34.2",
     "sparqlwrapper==2.0.0",
