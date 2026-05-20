@@ -1,47 +1,46 @@
 # courier
 
-`courier` is a Python client library for publishing and querying semantic assets through remote HTTP services.
+`courier` provides Python clients for working with remote services used to
+publish, upload, query, and manage research and semantic assets.
 
-The broader goal is to support publication of workflow recipes, workflow instances, and related data products. The concrete implementation in this repository currently focuses on Ontodocker-backed RDF datasets and SPARQL endpoints. Implementations to support CKAN instances and Zenodo are coming soon.
+The main user-facing API is built around service clients:
 
-In practice, `courier` solves a narrower and more immediate problem: service APIs tend to require repetitive URL assembly, token handling, request configuration, response parsing, and occasional tolerance for historical eccentricities. `courier` turns that work into explicit Python clients with a small public surface.
+- `OntodockerClient` for Ontodocker-backed RDF datasets, endpoint discovery, and
+  SPARQL queries.
+- `ZenodoClient` for Zenodo depositions, files, metadata, license lookup, and
+  publication workflows.
 
-`courier` is not a workflow engine, scheduler, or triple store. It is the transport layer with better manners.
+`HttpClient` is the shared HTTP(S) base client used by service clients. Advanced
+users may also use it directly when they need low-level access to an HTTP API or
+want to prototype support for a new service.
 
-## What `courier` currently provides
+`courier` is not a workflow engine, scheduler, triple store, or archival backend.
+It is a client layer for talking to those services through explicit Python APIs.
 
-The public API currently exposes two main entry points:
+## Overview
 
-- `HttpClient` for direct HTTP(S) access with normalized base URLs, bearer-token handling, timeouts, TLS verification, and consistent error reporting.
-- `OntodockerClient` for service-specific access to Ontodocker resources.
+The public API is organized in two layers.
 
-`OntodockerClient` currently supports:
+Service clients implement domain workflows:
 
-- discovery of dataset SPARQL endpoints
-- listing available datasets
-- creating and deleting datasets
-- downloading datasets as Turtle
-- uploading Turtle files
-- uploading `rdflib.Graph` objects
-- executing SPARQL queries and returning either raw text or `pandas.DataFrame` results
+- `OntodockerClient` exposes `endpoints`, `datasets`, and `sparql` resources.
+- `ZenodoClient` exposes `depositions`, `files`, and `licenses` resources.
 
-A legacy functional API remains available in `courier.ontodocker` for backward compatibility. New code should use `OntodockerClient`.
+Protocol clients provide reusable transport behavior:
 
-## Project structure
+- `HttpClient` normalizes base URLs, manages bearer-token headers, handles
+  timeouts and TLS verification, and provides small request/response helpers.
 
-The repository is organized in layers.
+New user code should usually start with a service client. Use `HttpClient`
+directly only when a service-specific method does not exist yet, or when you are
+developing a new service adapter.
 
-- `courier/http_client.py` contains the reusable HTTP client and shared request configuration.
-- `courier/transport/` contains small transport helpers for authentication headers, session creation, URL normalization, and response handling.
-- `courier/services/ontodocker/` contains the Ontodocker client and its resource modules for endpoints, datasets, SPARQL, and small data models.
+## Installation
 
-The intent is straightforward: generic transport code stays generic, service-specific behavior lives under `courier/services`.
+`courier` supports Python 3.11 to 3.13. Development in this repository currently
+targets Python 3.12.
 
-## Getting started
-
-`courier` supports Python 3.11 to 3.13. Development in this repository currently targets Python 3.12.
-
-For local development, a minimal setup using `conda` is:
+For local use or development:
 
 ```bash
 git clone https://github.com/pyiron/courier.git
@@ -52,45 +51,482 @@ pip install -e .
 ```
 
 If you want the documentation environment as well, see `docs/environment.yml`.
-A release on Pypi and conda-forge is coming soon.
 
-The main service client is `OntodockerClient`. The `address` argument may be either `host[:port]` or a full URL. If no scheme is provided, `https` is assumed.
+PyPI and conda-forge releases are planned, but the current hands-on installation
+path is an editable install from the repository.
+
+## Service Clients
+
+Service clients are the primary API for normal use. They subclass or build on
+`HttpClient`, then attach small resource objects for service-specific behavior.
+Generic transport code stays in `courier/http_client.py` and
+`courier/transport/`; service-specific routes, models, and error handling live
+under `courier/services/<service>/`.
+
+### OntodockerClient
+
+`OntodockerClient` is the service-specific client for Ontodocker datasets,
+endpoint discovery, and SPARQL queries.
+
+#### Architecture
+
+An `OntodockerClient` exposes three resource objects:
 
 ```python
 from courier import OntodockerClient
 
+client = OntodockerClient("ontodocker.example.org", token="your-token")
+
+client.endpoints
+client.datasets
+client.sparql
+```
+
+These resources share the same transport configuration: bearer-token
+authentication, timeout handling, TLS verification, and request execution come
+from `HttpClient`.
+
+Endpoint discovery also contains Ontodocker-specific compatibility logic for
+historical endpoint URL formats. That behavior belongs to the Ontodocker service
+package rather than the generic transport layer.
+
+#### Basic Usage
+
+For notebooks or scripts, configure the service URL and optional token in the
+environment:
+
+```bash
+export ONTODOCKER_ADDRESS="https://ontodocker.example.org"
+export ONTODOCKER_TOKEN="..."
+```
+
+Create a client:
+
+```python
+import os
+
+from courier import OntodockerClient
+
 client = OntodockerClient(
-    "ontodocker.example.org",
-    token="your-token",
+    address=os.environ["ONTODOCKER_ADDRESS"],
+    token=os.getenv("ONTODOCKER_TOKEN") or None,
+)
+```
+
+Discover available endpoints and datasets:
+
+```python
+raw_endpoints = client.endpoints.list_raw()
+endpoints = client.endpoints.list()
+datasets = client.datasets.list()
+```
+
+Create a disposable dataset, upload Turtle, and fetch it again:
+
+```python
+from pathlib import Path
+
+dataset = "courier_demo"
+turtle_path = Path("demo.ttl")
+turtle_path.write_text(
+    """
+@prefix ex: <https://example.org/> .
+
+ex:sample ex:label "Courier demo sample" .
+""".strip()
+    + "\n",
+    encoding="utf-8",
 )
 
-datasets = client.datasets.list()
-print(datasets)
+client.datasets.create(dataset)
+client.datasets.upload_turtlefile(dataset, turtle_path)
 
+turtle_text = client.datasets.fetch_turtle(dataset)
+downloaded = client.datasets.download_turtle(dataset, "downloaded_demo.ttl")
+```
+
+Upload an in-memory `rdflib.Graph`:
+
+```python
+import rdflib
+
+graph = rdflib.Graph()
+EX = rdflib.Namespace("https://example.org/")
+
+graph.add((EX.sample2, EX.label, rdflib.Literal("Graph-created sample")))
+client.datasets.upload_graph(dataset, graph)
+```
+
+Run SPARQL queries:
+
+```python
 query = """
 SELECT ?s ?p ?o
 WHERE {
-  ?s ?p ?o
+  ?s ?p ?o .
 }
-LIMIT 5
+LIMIT 10
 """
 
-df = client.sparql.query_df(
-    "example_dataset",
-    query,
-    columns=["s", "p", "o"],
-)
-
-print(df)
+raw_result = client.sparql.query_raw(dataset, query)
+df = client.sparql.query_df(dataset, query, columns=["s", "p", "o"])
 ```
 
-Common dataset operations are exposed explicitly on `client.datasets`:
+Clean up disposable resources when finished:
 
 ```python
-client.datasets.create("example_dataset")
-client.datasets.upload_turtlefile("example_dataset", "graph.ttl")
-ttl = client.datasets.fetch_turtle("example_dataset")
-client.datasets.delete("example_dataset")
+client.datasets.delete(dataset)
+turtle_path.unlink(missing_ok=True)
+Path(downloaded).unlink(missing_ok=True)
 ```
 
-If you need low-level access or want to build another service adapter, use `HttpClient` directly and keep the service-specific wiring in `courier/services`.
+#### More Information
+
+Use `OntodockerClient` for dataset, endpoint, and SPARQL workflows. Use
+`HttpClient` directly only when you need an endpoint that the Ontodocker
+resources do not expose yet. If that endpoint becomes part of normal Ontodocker
+usage, add it as a method on an Ontodocker resource class instead of duplicating
+URL construction in notebooks or scripts.
+
+See `notebooks/OntodockerClient.ipynb` for a runnable demo.
+
+### ZenodoClient
+
+`ZenodoClient` is the service-specific client for Zenodo deposition drafts,
+file uploads, metadata authoring, license lookup, and publication actions.
+
+#### Architecture
+
+A `ZenodoClient` exposes three resource objects:
+
+```python
+from courier import ZenodoClient
+
+client = ZenodoClient(sandbox=True, token="your-sandbox-token")
+
+client.depositions
+client.files
+client.licenses
+```
+
+`client.depositions` owns draft and publication lifecycle operations such as
+creating drafts, setting metadata, publishing, editing, discarding edits,
+creating new versions, and deleting unpublished drafts.
+
+`client.files` owns draft-file operations such as listing, uploading, renaming,
+and deleting files. File uploads use the bucket link returned by Zenodo.
+
+`client.licenses` provides read-only lookup of Zenodo license metadata.
+
+The current draft/deposition implementation uses Zenodo's legacy deposition API.
+This is the Zenodo-specific API still used for the core create, upload, update,
+and publish workflow implemented here. A future migration toward the newer
+InvenioRDM REST API is expected, but the existing resource surface is kept
+stable until there is a tested migration path.
+
+#### Basic Usage
+
+For development and testing, use the Zenodo sandbox:
+
+```bash
+export ZENODO_SANDBOX_TOKEN="..."
+```
+
+Sandbox and production Zenodo have separate accounts and tokens. A sandbox token
+must come from `https://sandbox.zenodo.org`, not production Zenodo.
+
+Create a client and a small artifact:
+
+```python
+import os
+from pathlib import Path
+
+from courier import ZenodoClient
+from courier.services.zenodo import Creator, ZenodoMetadata
+
+client = ZenodoClient(sandbox=True, token=os.environ["ZENODO_SANDBOX_TOKEN"])
+
+artifact = Path("demo_artifact.txt")
+artifact.write_text(
+    "Hello from courier's Zenodo sandbox demo.\n",
+    encoding="utf-8",
+)
+```
+
+Build metadata with the typed authoring model:
+
+```python
+metadata = ZenodoMetadata.software()
+metadata.title = "courier Zenodo sandbox demo"
+metadata.description = "Small demonstration upload created with courier."
+metadata.license = "cc-by-4.0"
+metadata.version = "0.1.0"
+
+metadata.creators.append(
+    Creator(
+        family_name="Doe",
+        given_names="Jane",
+        affiliation="Example Institute",
+    )
+)
+
+metadata.keywords.extend(["courier", "zenodo", "sandbox"])
+```
+
+Create an unpublished draft, pre-reserve a DOI, upload the artifact, and set the
+metadata:
+
+```python
+draft = client.depositions.create(prereserve_doi=True)
+uploaded = client.files.upload(draft, artifact)
+draft = client.depositions.set_metadata(draft, metadata)
+```
+
+Publishing is an explicit action:
+
+```python
+# published = client.depositions.publish(draft)
+```
+
+For routine demos, leave drafts unpublished and clean them up:
+
+```python
+client.depositions.delete(draft)
+artifact.unlink(missing_ok=True)
+```
+
+Production Zenodo should be treated differently from the sandbox. Publishing on
+production Zenodo creates a real archival record; a DOI becomes a persistent,
+citable scholarly identifier when the record is published.
+
+#### Metadata
+
+`ZenodoMetadata` is a typed authoring object for common Zenodo metadata fields.
+It mirrors Zenodo field names where practical, so the emitted payload remains
+easy to compare with Zenodo's API documentation.
+
+Convenience constructors set the upload type:
+
+```python
+software = ZenodoMetadata.software()
+dataset = ZenodoMetadata.dataset()
+publication = ZenodoMetadata.publication("article")
+image = ZenodoMetadata.image("figure")
+```
+
+Nested helpers model repeated metadata objects:
+
+- `Creator` for creators and optional affiliation, ORCID, or GND.
+- `Contributor` for additional contributors.
+- `RelatedIdentifier` for related persistent identifiers or URLs.
+- `CommunityRef` for Zenodo community identifiers.
+- `GrantRef` for grant references.
+
+`ZenodoMetadata.to_api_dict()` returns the inner Zenodo metadata object:
+
+```python
+metadata_object = metadata.to_api_dict()
+```
+
+`ZenodoMetadata.to_payload()` wraps that object as `{"metadata": ...}`, which is
+the shape used by Zenodo deposition create and update requests:
+
+```python
+request_payload = metadata.to_payload()
+```
+
+The typed model performs local validation for stable structural rules before a
+request is sent, such as required title, description, creator, access, and
+license fields.
+
+For Zenodo fields that are documented but not yet modeled by `ZenodoMetadata`,
+pass a raw mapping. Raw mappings are wrapped as `{"metadata": ...}` by
+`client.depositions.create()` and `client.depositions.set_metadata()`, but they
+do not receive courier's local metadata validation:
+
+```python
+raw_metadata = metadata.to_api_dict()
+raw_metadata["references"] = [
+    "Doe J. (2026). Example reference for a sandbox upload. DOI:10.0000/example",
+]
+
+draft = client.depositions.set_metadata(draft, raw_metadata)
+```
+
+Server responses use `DepositionInfo`. Its `metadata` field remains a raw
+dictionary because Zenodo may return normalized values or fields outside
+courier's authoring model.
+
+#### Sandbox vs Production
+
+Zenodo sandbox is for testing API workflows, metadata, uploads, DOI reservation,
+and publication behavior. Sandbox records use test DOI infrastructure and should
+not be cited as persistent scholarly records. Sandbox data may also be reset.
+
+Production Zenodo is the real publication environment. Published production
+records are archival research outputs, and their DOIs are persistent scholarly
+identifiers. Use `ZenodoClient(sandbox=True, ...)` for development and switch to
+the default production target only when publication is intentional.
+
+#### More Information
+
+Useful token scopes:
+
+- `deposit:write` for creating drafts, updating metadata, and uploading files.
+- `deposit:actions` for publishing, editing, discarding edits, and creating new
+  versions.
+
+Zenodo API failures raise `ZenodoApiError` or a more specific subclass such as
+`ZenodoValidationError`, `ZenodoAuthenticationError`, `ZenodoPermissionError`,
+or `ZenodoNotFoundError`. Local metadata and input validation failures use
+`courier.exceptions.ValidationError`.
+
+See `notebooks/ZenodoClient.ipynb` for a sandbox demo.
+
+## Protocol Clients
+
+Protocol clients provide lower-level infrastructure for service clients and
+advanced use.
+
+### HttpClient
+
+`HttpClient` is the generic HTTP(S) client and base class for HTTP-backed
+service clients.
+
+#### Architecture
+
+`HttpClient` centralizes shared transport behavior:
+
+- normalizing a host or URL into `base_url`
+- configuring bearer-token authorization headers
+- passing timeout and TLS verification settings to `requests`
+- allowing an externally managed `requests.Session`
+- exposing helpers for common text and JSON request patterns
+- raising consistent courier HTTP errors
+
+Developers adding a new HTTP-based service client should usually put domain
+methods on small resource classes and let the service client inherit from or
+compose `HttpClient`.
+
+#### Basic Usage
+
+Create a client:
+
+```python
+from courier import HttpClient
+
+client = HttpClient("api.example.org", token="initial-token")
+client.base_url
+```
+
+Use `default_scheme="http"` for local development services without TLS:
+
+```python
+local = HttpClient("localhost:8000", default_scheme="http")
+```
+
+Token updates keep the session authorization header in sync:
+
+```python
+client.token = "rotated-token"
+client.token = None
+```
+
+Use convenience helpers when the response shape is simple:
+
+```python
+json_payload = client.get_json("https://api.example.org/status")
+text_payload = client.get_text("https://api.example.org/version")
+
+created = client.post_text(
+    "https://api.example.org/items",
+    json={"name": "demo"},
+)
+updated = client.put_text(
+    "https://api.example.org/items/demo",
+    json={"name": "demo"},
+)
+deleted = client.delete_text("https://api.example.org/items/demo")
+```
+
+Use `request()` when you need direct access to the underlying
+`requests.Response`:
+
+```python
+response = client.request(
+    "GET",
+    "https://api.example.org/status",
+    headers={"Accept": "application/json"},
+)
+```
+
+#### More Information
+
+Use `HttpClient` directly when:
+
+- an implemented service client does not expose the endpoint you need
+- you are prototyping support for a new service
+- the API is small enough that a full service client would not yet pay off
+
+Once route construction, response parsing, or workflow logic starts repeating,
+move that behavior into a service-specific client under `courier/services/`.
+
+## Developer Guide
+
+The repository is organized by responsibility:
+
+- `courier/http_client.py` contains the public reusable HTTP client.
+- `courier/transport/` contains generic transport helpers for authentication,
+  session creation, URL normalization/composition, and response handling.
+- `courier/services/ontodocker/` contains Ontodocker routes, resources, models,
+  and compatibility helpers.
+- `courier/services/zenodo/` contains Zenodo routes, resources, metadata
+  authoring objects, response models, and Zenodo-specific errors.
+- `tests/unit/` contains focused behavior tests using fake sessions and
+  responses where practical.
+- `tests/integration/` contains integration-oriented checks, including the
+  README doctest loader.
+- `notebooks/` contains runnable demos for the public clients.
+- `.notes/` may contain local planning or investigation notes. Treat these as
+  internal working material, not automatically user-facing documentation.
+
+Keep generic behavior generic. URL normalization, authentication header
+handling, request execution, and general response helpers belong in transport
+code. Service routes, service models, compatibility behavior, and
+service-specific exceptions belong under the corresponding service package.
+
+When a workflow becomes normal user behavior, prefer adding a resource method
+over repeating low-level URL construction in notebooks or application code.
+
+## Development And Validation
+
+Run commands from the project root.
+
+Format with Black:
+
+```bash
+black .
+```
+
+Sort imports with Ruff:
+
+```bash
+ruff check --select I --fix .
+```
+
+Inspect broader Ruff suggestions before applying them:
+
+```bash
+ruff check --fix --diff .
+```
+
+Run tests:
+
+```bash
+pytest -q
+```
+
+`docs/README.md` is the package README and is loaded by
+`tests/integration/test_readme.py` as a doctest file. Keep README examples either
+simple enough to execute locally or formatted as illustrative fenced code blocks
+without doctest prompts when they require external services.
