@@ -1,6 +1,7 @@
 import unittest
 from datetime import date
 
+import courier.metadata as common_metadata
 from courier.exceptions import ValidationError
 from courier.services.zenodo import (
     CommunityRef,
@@ -10,7 +11,7 @@ from courier.services.zenodo import (
     RelatedIdentifier,
     ZenodoMetadata,
 )
-from courier.services.zenodo.metadata import _add_if_present
+from courier.services.zenodo.metadata import _add_if_present, _person_api_name
 
 
 def _valid_metadata(**overrides):
@@ -25,6 +26,18 @@ def _valid_metadata(**overrides):
     }
     values.update(overrides)
     return ZenodoMetadata(**values)
+
+
+def _valid_publication_metadata(**overrides):
+    values = {
+        "title": "courier",
+        "publication_date": "2026-04-21",
+        "description": "Python client.",
+        "creators": [common_metadata.Person(family_name="Doe", given_names="Jane")],
+        "license": "Apache-2.0",
+    }
+    values.update(overrides)
+    return common_metadata.PublicationMetadata(**values)
 
 
 class TestZenodoMetadata(unittest.TestCase):
@@ -79,6 +92,142 @@ class TestZenodoMetadata(unittest.TestCase):
         self.assertEqual(md.communities[0].identifier, "pyiron")
         self.assertEqual(md.grants[0].id, "10.13039/501100000000::12345")
         self.assertEqual(md.to_api_dict()["publication_date"], "2026-04-21")
+
+    def test_publication_metadata_serializes_to_zenodo_payload(self):
+        publication = _valid_publication_metadata(
+            creators=[
+                common_metadata.Person(
+                    family_name="Doe",
+                    given_names="Jane",
+                    affiliation="CERN",
+                    orcid="0000-0000-0000-0000",
+                    gnd="123",
+                )
+            ],
+            contributors=[
+                common_metadata.Contributor(
+                    person=common_metadata.Person(
+                        name="Curator, Chris",
+                        affiliation="CERN",
+                    ),
+                    role="DataCurator",
+                )
+            ],
+            keywords=["python", "client"],
+            doi="10.1234/example",
+            version="1.0.0",
+            language="eng",
+            related_identifiers=[
+                common_metadata.RelatedIdentifier(
+                    identifier="10.1234/data",
+                    relation="isSupplementedBy",
+                    resource_type="dataset",
+                )
+            ],
+        )
+
+        md = ZenodoMetadata.software(publication)
+        payload = md.to_payload()
+
+        self.assertDictEqual(
+            payload,
+            {
+                "metadata": {
+                    "upload_type": "software",
+                    "publication_date": "2026-04-21",
+                    "title": "courier",
+                    "creators": [
+                        {
+                            "name": "Doe, Jane",
+                            "affiliation": "CERN",
+                            "orcid": "0000-0000-0000-0000",
+                            "gnd": "123",
+                        }
+                    ],
+                    "description": "Python client.",
+                    "access_right": "open",
+                    "license": "Apache-2.0",
+                    "doi": "10.1234/example",
+                    "keywords": ["python", "client"],
+                    "related_identifiers": [
+                        {
+                            "identifier": "10.1234/data",
+                            "relation": "isSupplementedBy",
+                            "resource_type": "dataset",
+                        }
+                    ],
+                    "contributors": [
+                        {
+                            "name": "Curator, Chris",
+                            "type": "DataCurator",
+                            "affiliation": "CERN",
+                        }
+                    ],
+                    "version": "1.0.0",
+                    "language": "eng",
+                }
+            },
+        )
+
+    def test_publication_metadata_keeps_zenodo_specific_fields_on_adapter(self):
+        publication = _valid_publication_metadata()
+        md = ZenodoMetadata.publication(
+            "article",
+            publication,
+        )
+        md.prereserve_doi = True
+        md.notes = "Release notes."
+        md.add_community("pyiron")
+        md.add_grant("grant-1")
+
+        payload = md.to_api_dict()
+
+        self.assertEqual(payload["publication_type"], "article")
+        self.assertTrue(payload["prereserve_doi"])
+        self.assertEqual(payload["notes"], "Release notes.")
+        self.assertEqual(payload["communities"], [{"identifier": "pyiron"}])
+        self.assertEqual(payload["grants"], [{"id": "grant-1"}])
+
+    def test_publication_metadata_rejects_duplicate_common_fields(self):
+        publication = _valid_publication_metadata()
+        cases = [
+            ({"title": "legacy"}, "title"),
+            ({"creators": [Creator(name="Legacy, Creator")]}, "creators"),
+            ({"keywords": ["legacy"]}, "keywords"),
+            ({"language": "deu"}, "language"),
+        ]
+
+        for kwargs, message in cases:
+            with (
+                self.subTest(kwargs=kwargs),
+                self.assertRaisesRegex(ValidationError, message),
+            ):
+                ZenodoMetadata(
+                    metadata=publication,
+                    upload_type="software",
+                    **kwargs,
+                ).validate()
+
+    def test_publication_metadata_contributor_requires_role_for_zenodo(self):
+        publication = _valid_publication_metadata(
+            contributors=[
+                common_metadata.Contributor(
+                    person=common_metadata.Person(name="Curator, Chris"),
+                )
+            ],
+        )
+
+        with self.assertRaisesRegex(ValidationError, "contributor role"):
+            ZenodoMetadata.software(publication).to_api_dict()
+
+    def test_publication_person_adapter_rejects_invalid_identity(self):
+        person = object.__new__(common_metadata.Person)
+        object.__setattr__(person, "name", None)
+        object.__setattr__(person, "family_name", None)
+        object.__setattr__(person, "given_names", None)
+
+        with self.assertRaisesRegex(ValidationError, "person requires"):
+            _person_api_name(person)
 
     def test_creator_can_use_explicit_name(self):
         creator = Creator(name="Zenodo Team", affiliation="CERN")

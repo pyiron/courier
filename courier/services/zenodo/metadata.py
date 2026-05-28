@@ -380,9 +380,7 @@ class ZenodoMetadata:
         if self.metadata is not None:
             return list(self.metadata.keywords)
         return [
-            keyword.strip()
-            for keyword in self.keywords
-            if keyword and keyword.strip()
+            keyword.strip() for keyword in self.keywords if keyword and keyword.strip()
         ]
 
     def _related_identifiers(
