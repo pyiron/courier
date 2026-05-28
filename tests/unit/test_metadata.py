@@ -88,6 +88,25 @@ class TestPublicationMetadata(unittest.TestCase):
 
         self.assertIsNone(metadata.publication_date)
 
+    def test_optional_text_fields_accept_none(self):
+        person = Person(
+            name="Doe, Jane",
+            affiliation=None,
+        )
+        contributor = Contributor(
+            person=person,
+            role=None,
+        )
+        related_identifier = RelatedIdentifier(
+            identifier="10.1234/example",
+            relation="cites",
+            resource_type=None,
+        )
+
+        self.assertIsNone(person.affiliation)
+        self.assertIsNone(contributor.role)
+        self.assertIsNone(related_identifier.resource_type)
+
     def test_person_requires_name_or_structured_name_parts(self):
         with self.assertRaisesRegex(PydanticValidationError, "person requires"):
             Person()
