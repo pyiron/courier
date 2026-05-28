@@ -44,7 +44,7 @@ class TestPublicationMetadata(unittest.TestCase):
         self.assertEqual(metadata.creators[0].family_name, "Doe")
         self.assertEqual(metadata.contributors[0].person.name, "Curator, Chris")
         self.assertEqual(metadata.contributors[0].role, "DataCurator")
-        self.assertEqual(metadata.keywords, ["python", "publishing"])
+        self.assertEqual(metadata.keywords, ("python", "publishing"))
         self.assertEqual(metadata.license, "Apache-2.0")
         self.assertEqual(metadata.doi, "10.1234/example")
         self.assertEqual(metadata.version, "1.0.0")
@@ -180,6 +180,24 @@ class TestPublicationMetadata(unittest.TestCase):
             metadata.title = " "
         with self.assertRaisesRegex(PydanticValidationError, "creators"):
             metadata.creators = []
+
+    def test_collection_fields_are_immutable_after_validation(self):
+        metadata = PublicationMetadata(
+            title="Dataset",
+            description="Reusable data.",
+            creators=[Person(name="Doe, Jane")],
+            keywords=["data"],
+        )
+
+        self.assertIsInstance(metadata.creators, tuple)
+        self.assertIsInstance(metadata.contributors, tuple)
+        self.assertIsInstance(metadata.keywords, tuple)
+        self.assertIsInstance(metadata.related_identifiers, tuple)
+
+        with self.assertRaises(AttributeError):
+            metadata.creators.clear()
+        with self.assertRaises(AttributeError):
+            metadata.keywords.append(" ")
 
 
 if __name__ == "__main__":

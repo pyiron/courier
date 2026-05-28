@@ -90,15 +90,15 @@ class PublicationMetadata:
 
     title: str
     description: str
-    creators: list[Person]
+    creators: tuple[Person, ...]
     publication_date: date | None = None
-    contributors: list[Contributor] = field(default_factory=list)
-    keywords: list[str] = field(default_factory=list)
+    contributors: tuple[Contributor, ...] = field(default_factory=tuple)
+    keywords: tuple[str, ...] = field(default_factory=tuple)
     license: str | None = None
     doi: str | None = None
     version: str | None = None
     language: str | None = None
-    related_identifiers: list[RelatedIdentifier] = field(default_factory=list)
+    related_identifiers: tuple[RelatedIdentifier, ...] = field(default_factory=tuple)
 
     @field_validator("title", "description", mode="after")
     @classmethod
@@ -118,9 +118,8 @@ class PublicationMetadata:
 
     @field_validator("keywords", mode="after")
     @classmethod
-    def _clean_keywords(cls, value: list[str]) -> list[str]:
-        keywords = [_required_text(keyword) for keyword in value]
-        return keywords
+    def _clean_keywords(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        return tuple(_required_text(keyword) for keyword in value)
 
     @model_validator(mode="after")
     def _validate_creators(self) -> Self:
