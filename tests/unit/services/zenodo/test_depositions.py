@@ -197,6 +197,13 @@ class TestDepositionsResource(unittest.TestCase):
             "software",
         )
 
+    def test_plain_publication_metadata_is_rejected(self):
+        session = FakeSession([FakeResponse(json_value=deposition_payload())])
+        c = ZenodoClient(session=cast(Any, session))
+
+        with self.assertRaisesRegex(ValidationError, "ZenodoMetadata"):
+            c.depositions.create(cast(Any, _publication_metadata()))
+
     def test_publish_posts_to_action_endpoint(self):
         session = FakeSession(
             [FakeResponse(status_code=202, json_value=deposition_payload())]
