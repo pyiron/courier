@@ -72,8 +72,13 @@ class TestPublicationMetadataBoundary(unittest.TestCase):
 def _imported_modules(node: ast.AST) -> tuple[str, ...]:
     if isinstance(node, ast.Import):
         return tuple(alias.name for alias in node.names)
-    if isinstance(node, ast.ImportFrom) and node.module:
-        return (node.module,)
+    if isinstance(node, ast.ImportFrom):
+        if node.level:
+            if node.module:
+                return (f"courier.{node.module}",)
+            return tuple(f"courier.{alias.name}" for alias in node.names)
+        if node.module:
+            return (node.module,)
     return ()
 
 
