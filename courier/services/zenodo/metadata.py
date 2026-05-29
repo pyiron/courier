@@ -461,7 +461,7 @@ def _warn_legacy_common_metadata(*, stacklevel: int) -> None:
     warnings.warn(
         _LEGACY_COMMON_METADATA_MESSAGE,
         DeprecationWarning,
-        stacklevel=stacklevel,
+        stacklevel=stacklevel + 1,
     )
 
 
