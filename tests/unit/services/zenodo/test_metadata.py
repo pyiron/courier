@@ -1,4 +1,5 @@
 import unittest
+import warnings
 from datetime import date
 
 import courier.metadata as common_metadata
@@ -12,6 +13,10 @@ from courier.services.zenodo import (
     ZenodoMetadata,
 )
 from courier.services.zenodo.metadata import _add_if_present, _person_api_name
+
+_LEGACY_METADATA_WARNING = (
+    "Setting publication metadata fields directly on ZenodoMetadata is deprecated.*"
+)
 
 
 def _valid_metadata(**overrides):
@@ -41,6 +46,18 @@ def _valid_publication_metadata(**overrides):
 
 
 class TestZenodoMetadata(unittest.TestCase):
+    def setUp(self):
+        self._warning_context = warnings.catch_warnings()
+        self._warning_context.__enter__()
+        warnings.filterwarnings(
+            "ignore",
+            message=_LEGACY_METADATA_WARNING,
+            category=DeprecationWarning,
+        )
+
+    def tearDown(self):
+        self._warning_context.__exit__(None, None, None)
+
     def test_software_metadata_serializes_to_zenodo_payload(self):
         md = ZenodoMetadata.software()
         md.title = "courier"
@@ -168,6 +185,47 @@ class TestZenodoMetadata(unittest.TestCase):
                 }
             },
         )
+
+    def test_publication_metadata_adapter_does_not_warn(self):
+        publication = _valid_publication_metadata()
+        md = ZenodoMetadata.software(publication)
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            payload = md.to_payload()
+
+        deprecations = [
+            warning
+            for warning in caught
+            if issubclass(warning.category, DeprecationWarning)
+        ]
+        self.assertEqual(deprecations, [])
+        self.assertEqual(payload["metadata"]["title"], "courier")
+
+    def test_legacy_common_metadata_serialization_warns(self):
+        md = _valid_metadata()
+
+        with self.assertWarnsRegex(DeprecationWarning, "PublicationMetadata"):
+            payload = md.to_api_dict()
+
+        self.assertEqual(payload["title"], "courier")
+
+    def test_legacy_common_metadata_helper_methods_warn(self):
+        md = ZenodoMetadata.dataset()
+
+        with self.assertWarnsRegex(DeprecationWarning, "PublicationMetadata"):
+            creator = md.add_creator(name="Doe, Jane")
+        with self.assertWarnsRegex(DeprecationWarning, "PublicationMetadata"):
+            md.add_keyword("data")
+        with self.assertWarnsRegex(DeprecationWarning, "PublicationMetadata"):
+            related = md.add_related_identifier(
+                identifier="10.1234/example",
+                relation="cites",
+            )
+
+        self.assertIs(md.creators[0], creator)
+        self.assertEqual(md.keywords, ["data"])
+        self.assertIs(md.related_identifiers[0], related)
 
     def test_publication_metadata_keeps_zenodo_specific_fields_on_adapter(self):
         publication = _valid_publication_metadata()

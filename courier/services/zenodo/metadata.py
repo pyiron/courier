@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
@@ -36,6 +37,11 @@ _COMMON_METADATA_FIELDS = {
     "version",
     "language",
 }
+_LEGACY_COMMON_METADATA_MESSAGE = (
+    "Setting publication metadata fields directly on ZenodoMetadata is deprecated. "
+    "Use courier.PublicationMetadata and wrap it with a ZenodoMetadata adapter, "
+    "for example ZenodoMetadata.software(publication)."
+)
 
 
 @dataclass
@@ -161,6 +167,7 @@ class ZenodoMetadata:
     def validate(self) -> None:
         """Validate local metadata requirements before submission."""
         self._validate_publication_metadata_boundary()
+        self._warn_if_legacy_common_metadata()
 
         upload_type = _required_string(self.upload_type, "upload_type")
         if upload_type not in _UPLOAD_TYPES:
@@ -321,17 +328,20 @@ class ZenodoMetadata:
         return cls(upload_type="image", image_type=image_type, metadata=metadata)
 
     def add_creator(self, **kwargs: Any) -> Creator:
+        _warn_legacy_common_metadata(stacklevel=2)
         creator = Creator(**kwargs)
         self.creators.append(creator)
         return creator
 
     def add_keyword(self, keyword: str) -> None:
+        _warn_legacy_common_metadata(stacklevel=2)
         keyword = keyword.strip()
         if not keyword:
             raise ValidationError("keyword must be non-empty")
         self.keywords.append(keyword)
 
     def add_related_identifier(self, **kwargs: Any) -> RelatedIdentifier:
+        _warn_legacy_common_metadata(stacklevel=2)
         related = RelatedIdentifier(**kwargs)
         self.related_identifiers.append(related)
         return related
@@ -431,11 +441,28 @@ class ZenodoMetadata:
             return bool(value)
         return value is not None
 
+    def _warn_if_legacy_common_metadata(self) -> None:
+        if self.metadata is not None:
+            return
+        if any(
+            self._has_legacy_common_field_value(field_name)
+            for field_name in _COMMON_METADATA_FIELDS
+        ):
+            _warn_legacy_common_metadata(stacklevel=3)
+
 
 def _required_string(value: object, field_name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValidationError(f"{field_name} must be a non-empty string")
     return value.strip()
+
+
+def _warn_legacy_common_metadata(*, stacklevel: int) -> None:
+    warnings.warn(
+        _LEGACY_COMMON_METADATA_MESSAGE,
+        DeprecationWarning,
+        stacklevel=stacklevel,
+    )
 
 
 def _creator_to_api_dict(
