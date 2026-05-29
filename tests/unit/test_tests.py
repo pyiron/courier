@@ -4,6 +4,7 @@ from importlib.metadata import PackageNotFoundError
 from unittest import mock
 
 import courier
+import courier.metadata as metadata_models
 
 
 class TestVersion(unittest.TestCase):
@@ -28,3 +29,11 @@ class TestVersion(unittest.TestCase):
 
         self.assertEqual(reloaded.__version__, "0.0.0+unknown")
         importlib.reload(courier)
+
+
+class TestPublicApi(unittest.TestCase):
+    def test_publication_metadata_models_are_top_level_imports(self):
+        self.assertIs(courier.Contributor, metadata_models.Contributor)
+        self.assertIs(courier.Person, metadata_models.Person)
+        self.assertIs(courier.PublicationMetadata, metadata_models.PublicationMetadata)
+        self.assertIs(courier.RelatedIdentifier, metadata_models.RelatedIdentifier)
