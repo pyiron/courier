@@ -31,15 +31,12 @@ class TestDepositionsResource(unittest.TestCase):
     def setUp(self):
         self._warning_context = warnings.catch_warnings()
         self._warning_context.__enter__()
+        self.addCleanup(self._warning_context.__exit__, None, None, None)
         warnings.filterwarnings(
             "ignore",
             message=_LEGACY_METADATA_WARNING,
             category=DeprecationWarning,
         )
-
-    def tearDown(self):
-        self._warning_context.__exit__(None, None, None)
-
     def test_deposition_action_url_rejects_unknown_action(self):
         with self.assertRaisesRegex(ValidationError, "unsupported deposition action"):
             deposition_action_url("https://zenodo.org", 42, "archive")
