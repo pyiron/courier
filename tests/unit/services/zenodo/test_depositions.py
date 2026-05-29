@@ -2,12 +2,24 @@ import unittest
 from typing import Any, cast
 
 from courier.exceptions import ValidationError
+from courier.metadata import Person, PublicationMetadata
 from courier.services.zenodo import ZenodoClient
 from courier.services.zenodo._urls import deposition_action_url
 from courier.services.zenodo.metadata import Creator, ZenodoMetadata
 from courier.services.zenodo.models import DepositionInfo
 
 from ._helpers import FakeResponse, FakeSession, deposition_payload
+
+
+def _publication_metadata() -> PublicationMetadata:
+    return PublicationMetadata(
+        title="courier",
+        description="Python client.",
+        publication_date="2026-04-21",
+        creators=[Person(name="Doe, Jane")],
+        keywords=["python"],
+        license="Apache-2.0",
+    )
 
 
 class TestDepositionsResource(unittest.TestCase):
@@ -101,6 +113,39 @@ class TestDepositionsResource(unittest.TestCase):
             "software",
         )
 
+    def test_create_serializes_publication_metadata_adapter(self):
+        metadata = ZenodoMetadata.software(_publication_metadata())
+        session = FakeSession([FakeResponse(json_value=deposition_payload())])
+        c = ZenodoClient(session=cast(Any, session))
+
+        _ = c.depositions.create(metadata)
+
+        self.assertEqual(
+            session.calls[0]["json"],
+            {
+                "metadata": {
+                    "upload_type": "software",
+                    "publication_date": "2026-04-21",
+                    "title": "courier",
+                    "creators": [{"name": "Doe, Jane"}],
+                    "description": "Python client.",
+                    "access_right": "open",
+                    "license": "Apache-2.0",
+                    "keywords": ["python"],
+                    "language": "eng",
+                }
+            },
+        )
+
+    def test_create_adds_prereserved_doi_to_publication_metadata_adapter(self):
+        metadata = ZenodoMetadata.software(_publication_metadata())
+        session = FakeSession([FakeResponse(json_value=deposition_payload())])
+        c = ZenodoClient(session=cast(Any, session))
+
+        _ = c.depositions.create(metadata, prereserve_doi=True)
+
+        self.assertTrue(session.calls[0]["json"]["metadata"]["prereserve_doi"])
+
     def test_get_accepts_deposition_info(self):
         session = FakeSession([FakeResponse(json_value=deposition_payload())])
         c = ZenodoClient(session=cast(Any, session))
@@ -134,6 +179,23 @@ class TestDepositionsResource(unittest.TestCase):
         _ = c.depositions.set_metadata(42, {"metadata": {"title": "Draft"}})
 
         self.assertEqual(session.calls[0]["json"], {"metadata": {"title": "Draft"}})
+
+    def test_set_metadata_serializes_publication_metadata_adapter(self):
+        metadata = ZenodoMetadata.software(_publication_metadata())
+        session = FakeSession([FakeResponse(json_value=deposition_payload())])
+        c = ZenodoClient(session=cast(Any, session))
+
+        _ = c.depositions.set_metadata(42, metadata)
+
+        self.assertEqual(session.calls[0]["method"], "PUT")
+        self.assertEqual(
+            session.calls[0]["json"]["metadata"]["title"],
+            "courier",
+        )
+        self.assertEqual(
+            session.calls[0]["json"]["metadata"]["upload_type"],
+            "software",
+        )
 
     def test_publish_posts_to_action_endpoint(self):
         session = FakeSession(
