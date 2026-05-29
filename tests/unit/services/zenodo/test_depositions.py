@@ -37,6 +37,7 @@ class TestDepositionsResource(unittest.TestCase):
             message=_LEGACY_METADATA_WARNING,
             category=DeprecationWarning,
         )
+
     def test_deposition_action_url_rejects_unknown_action(self):
         with self.assertRaisesRegex(ValidationError, "unsupported deposition action"):
             deposition_action_url("https://zenodo.org", 42, "archive")

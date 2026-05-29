@@ -55,6 +55,7 @@ class TestZenodoMetadata(unittest.TestCase):
             message=_LEGACY_METADATA_WARNING,
             category=DeprecationWarning,
         )
+
     def test_software_metadata_serializes_to_zenodo_payload(self):
         md = ZenodoMetadata.software()
         md.title = "courier"
