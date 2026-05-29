@@ -125,11 +125,12 @@ def _metadata_payload(
         return {}
     if isinstance(metadata, ZenodoMetadata):
         return metadata.to_payload()
-    if not isinstance(metadata, Mapping):
+    try:
+        payload = dict(metadata)
+    except TypeError as exc:
         raise ValidationError(
             "Zenodo deposition metadata must be ZenodoMetadata, a mapping, or None"
-        )
-    payload = dict(metadata)
+        ) from exc
     if isinstance(payload.get("metadata"), Mapping):
         return payload
     return {"metadata": payload}
