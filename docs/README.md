@@ -241,7 +241,7 @@ Create a client and a small artifact:
 import os
 from pathlib import Path
 
-from courier import ZenodoClient
+from courier import Person, PublicationMetadata, ZenodoClient
 from courier.services.zenodo import Creator, ZenodoMetadata
 
 client = ZenodoClient(sandbox=True, token=os.environ["ZENODO_SANDBOX_TOKEN"])
@@ -253,15 +253,39 @@ artifact.write_text(
 )
 ```
 
-Build metadata with the typed authoring model:
+Build service-independent publication metadata and wrap it in the Zenodo
+adapter:
+
+```python
+publication = PublicationMetadata(
+    title="courier Zenodo sandbox demo",
+    description="Small demonstration upload created with courier.",
+    creators=[
+        Person(
+            family_name="Doe",
+            given_names="Jane",
+            affiliation="Example Institute",
+        )
+    ],
+    keywords=["courier", "zenodo", "sandbox"],
+    license="cc-by-4.0",
+    version="0.1.0",
+)
+
+metadata = ZenodoMetadata.software(publication)
+```
+
+Directly setting publication fields such as `title`, `creators`, or `keywords`
+on `ZenodoMetadata` is deprecated. Use `PublicationMetadata` for reusable
+publication fields and `ZenodoMetadata` for Zenodo-specific fields.
+
+The deprecated direct style still works temporarily for migration:
 
 ```python
 metadata = ZenodoMetadata.software()
 metadata.title = "courier Zenodo sandbox demo"
 metadata.description = "Small demonstration upload created with courier."
 metadata.license = "cc-by-4.0"
-metadata.version = "0.1.0"
-
 metadata.creators.append(
     Creator(
         family_name="Doe",
@@ -269,8 +293,6 @@ metadata.creators.append(
         affiliation="Example Institute",
     )
 )
-
-metadata.keywords.extend(["courier", "zenodo", "sandbox"])
 ```
 
 Create an unpublished draft, pre-reserve a DOI, upload the artifact, and set the
@@ -301,24 +323,31 @@ citable scholarly identifier when the record is published.
 
 #### Metadata
 
-`ZenodoMetadata` is a typed authoring object for common Zenodo metadata fields.
-It mirrors Zenodo field names where practical, so the emitted payload remains
-easy to compare with Zenodo's API documentation.
+`PublicationMetadata` is courier's service-independent authoring model for
+publication fields such as title, description, creators, contributors, related
+identifiers, keywords, license, DOI, version, language, and publication date.
+
+`ZenodoMetadata` adapts `PublicationMetadata` into Zenodo's API payload shape and
+keeps Zenodo-specific fields such as upload type, access control, communities,
+grants, DOI reservation, and notes.
 
 Convenience constructors set the upload type:
 
 ```python
-software = ZenodoMetadata.software()
-dataset = ZenodoMetadata.dataset()
-publication = ZenodoMetadata.publication("article")
-image = ZenodoMetadata.image("figure")
+software = ZenodoMetadata.software(publication)
+dataset = ZenodoMetadata.dataset(publication)
+article = ZenodoMetadata.publication("article", publication)
+image = ZenodoMetadata.image("figure", publication)
 ```
 
-Nested helpers model repeated metadata objects:
+Common nested metadata is modeled independently of Zenodo:
 
-- `Creator` for creators and optional affiliation, ORCID, or GND.
-- `Contributor` for additional contributors.
+- `Person` for creators and contributor identities.
+- `Contributor` for additional contributors with a role.
 - `RelatedIdentifier` for related persistent identifiers or URLs.
+
+Zenodo-specific repeated metadata still uses Zenodo helpers:
+
 - `CommunityRef` for Zenodo community identifiers.
 - `GrantRef` for grant references.
 
@@ -338,6 +367,10 @@ request_payload = metadata.to_payload()
 The typed model performs local validation for stable structural rules before a
 request is sent, such as required title, description, creator, access, and
 license fields.
+
+Plain `PublicationMetadata` is not passed directly to `client.depositions`.
+Wrap it in `ZenodoMetadata` so the Zenodo upload type and service-specific
+validation remain explicit.
 
 For Zenodo fields that are documented but not yet modeled by `ZenodoMetadata`,
 pass a raw mapping. Raw mappings are wrapped as `{"metadata": ...}` by
