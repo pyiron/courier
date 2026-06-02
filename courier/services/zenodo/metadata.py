@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
+import courier.metadata as common_metadata
 from courier.exceptions import ValidationError
 
 _UPLOAD_TYPES = {
@@ -22,6 +23,19 @@ _UPLOAD_TYPES = {
     "video",
 }
 _ACCESS_RIGHTS = {"closed", "embargoed", "open", "restricted"}
+_COMMON_METADATA_FIELDS = {
+    "publication_date",
+    "title",
+    "creators",
+    "description",
+    "license",
+    "doi",
+    "keywords",
+    "related_identifiers",
+    "contributors",
+    "version",
+    "language",
+}
 
 
 @dataclass
@@ -142,21 +156,28 @@ class ZenodoMetadata:
     grants: list[GrantRef] = field(default_factory=list)
     version: str | None = None
     language: str | None = "eng"
+    metadata: common_metadata.PublicationMetadata | None = None
 
     def validate(self) -> None:
         """Validate local metadata requirements before submission."""
+        self._validate_publication_metadata_boundary()
+
         upload_type = _required_string(self.upload_type, "upload_type")
         if upload_type not in _UPLOAD_TYPES:
             raise ValidationError(f"unsupported upload_type: {upload_type!r}")
 
-        _ = _date_string(self.publication_date, "publication_date")
-        _ = _required_string(self.title, "title")
-        _ = _required_string(self.description, "description")
+        _ = _date_string(self._publication_date(), "publication_date")
+        _ = _required_string(self._title(), "title")
+        _ = _required_string(self._description(), "description")
 
-        if not self.creators:
+        creators = self._creators()
+        if not creators:
             raise ValidationError("creators must contain at least one creator")
-        for creator in self.creators:
-            creator.validate()
+        for creator in creators:
+            if isinstance(creator, Creator):
+                creator.validate()
+            else:
+                _ = _person_api_name(creator)
 
         if upload_type == "publication":
             _ = _required_string(self.publication_type, "publication_type")
@@ -167,7 +188,7 @@ class ZenodoMetadata:
         if access_right not in _ACCESS_RIGHTS:
             raise ValidationError(f"unsupported access_right: {access_right!r}")
         if access_right in {"open", "embargoed"}:
-            _ = _required_string(self.license, "license")
+            _ = _required_string(self._license(), "license")
         if access_right == "embargoed":
             _ = _date_string(self.embargo_date, "embargo_date")
         if access_right == "restricted":
@@ -180,39 +201,37 @@ class ZenodoMetadata:
         data: dict[str, Any] = {
             "upload_type": _required_string(self.upload_type, "upload_type"),
             "publication_date": _date_string(
-                self.publication_date,
+                self._publication_date(),
                 "publication_date",
             ),
-            "title": _required_string(self.title, "title"),
-            "creators": [creator.to_api_dict() for creator in self.creators],
-            "description": _required_string(self.description, "description"),
+            "title": _required_string(self._title(), "title"),
+            "creators": [_creator_to_api_dict(creator) for creator in self._creators()],
+            "description": _required_string(self._description(), "description"),
             "access_right": _required_string(self.access_right, "access_right"),
         }
 
         _add_if_present(data, "publication_type", self.publication_type)
         _add_if_present(data, "image_type", self.image_type)
-        _add_if_present(data, "license", self.license)
+        _add_if_present(data, "license", self._license())
         _add_if_present(data, "embargo_date", _optional_date_string(self.embargo_date))
         _add_if_present(data, "access_conditions", self.access_conditions)
-        _add_if_present(data, "doi", self.doi)
+        _add_if_present(data, "doi", self._doi())
         if self.prereserve_doi is not None:
             data["prereserve_doi"] = self.prereserve_doi
-        if self.keywords:
-            keywords = [
-                keyword.strip()
-                for keyword in self.keywords
-                if keyword and keyword.strip()
-            ]
-            if keywords:
-                data["keywords"] = keywords
+        keywords = self._keywords()
+        if keywords:
+            data["keywords"] = keywords
         _add_if_present(data, "notes", self.notes)
-        if self.related_identifiers:
+        related_identifiers = self._related_identifiers()
+        if related_identifiers:
             data["related_identifiers"] = [
-                related.to_api_dict() for related in self.related_identifiers
+                _related_identifier_to_api_dict(related)
+                for related in related_identifiers
             ]
-        if self.contributors:
+        contributors = self._contributors()
+        if contributors:
             data["contributors"] = [
-                contributor.to_api_dict() for contributor in self.contributors
+                _contributor_to_api_dict(contributor) for contributor in contributors
             ]
         if self.communities:
             data["communities"] = [
@@ -220,8 +239,8 @@ class ZenodoMetadata:
             ]
         if self.grants:
             data["grants"] = [grant.to_api_dict() for grant in self.grants]
-        _add_if_present(data, "version", self.version)
-        _add_if_present(data, "language", self.language)
+        _add_if_present(data, "version", self._version())
+        _add_if_present(data, "language", self._language())
         return data
 
     def to_payload(self) -> dict[str, Any]:
@@ -268,20 +287,38 @@ class ZenodoMetadata:
         )
 
     @classmethod
-    def software(cls) -> ZenodoMetadata:
-        return cls(upload_type="software")
+    def software(
+        cls,
+        metadata: common_metadata.PublicationMetadata | None = None,
+    ) -> ZenodoMetadata:
+        return cls(upload_type="software", metadata=metadata)
 
     @classmethod
-    def dataset(cls) -> ZenodoMetadata:
-        return cls(upload_type="dataset")
+    def dataset(
+        cls,
+        metadata: common_metadata.PublicationMetadata | None = None,
+    ) -> ZenodoMetadata:
+        return cls(upload_type="dataset", metadata=metadata)
 
     @classmethod
-    def publication(cls, publication_type: str) -> ZenodoMetadata:
-        return cls(upload_type="publication", publication_type=publication_type)
+    def publication(
+        cls,
+        publication_type: str,
+        metadata: common_metadata.PublicationMetadata | None = None,
+    ) -> ZenodoMetadata:
+        return cls(
+            upload_type="publication",
+            publication_type=publication_type,
+            metadata=metadata,
+        )
 
     @classmethod
-    def image(cls, image_type: str) -> ZenodoMetadata:
-        return cls(upload_type="image", image_type=image_type)
+    def image(
+        cls,
+        image_type: str,
+        metadata: common_metadata.PublicationMetadata | None = None,
+    ) -> ZenodoMetadata:
+        return cls(upload_type="image", image_type=image_type, metadata=metadata)
 
     def add_creator(self, **kwargs: Any) -> Creator:
         creator = Creator(**kwargs)
@@ -309,11 +346,146 @@ class ZenodoMetadata:
         self.grants.append(grant)
         return grant
 
+    def _publication_date(self) -> date | str | None:
+        if self.metadata is None:
+            return self.publication_date
+        return self.metadata.publication_date
+
+    def _title(self) -> str | None:
+        if self.metadata is None:
+            return self.title
+        return self.metadata.title
+
+    def _description(self) -> str | None:
+        if self.metadata is None:
+            return self.description
+        return self.metadata.description
+
+    def _creators(self) -> tuple[common_metadata.Person, ...] | list[Creator]:
+        if self.metadata is None:
+            return self.creators
+        return self.metadata.creators
+
+    def _license(self) -> str | None:
+        if self.metadata is None:
+            return self.license
+        return self.metadata.license
+
+    def _doi(self) -> str | None:
+        if self.metadata is None:
+            return self.doi
+        return self.metadata.doi
+
+    def _keywords(self) -> list[str]:
+        if self.metadata is not None:
+            return list(self.metadata.keywords)
+        return [
+            keyword.strip() for keyword in self.keywords if keyword and keyword.strip()
+        ]
+
+    def _related_identifiers(
+        self,
+    ) -> tuple[common_metadata.RelatedIdentifier, ...] | list[RelatedIdentifier]:
+        if self.metadata is None:
+            return self.related_identifiers
+        return self.metadata.related_identifiers
+
+    def _contributors(
+        self,
+    ) -> tuple[common_metadata.Contributor, ...] | list[Contributor]:
+        if self.metadata is None:
+            return self.contributors
+        return self.metadata.contributors
+
+    def _version(self) -> str | None:
+        if self.metadata is None:
+            return self.version
+        return self.metadata.version
+
+    def _language(self) -> str | None:
+        if self.metadata is None:
+            return self.language
+        return self.metadata.language or self.language
+
+    def _validate_publication_metadata_boundary(self) -> None:
+        if self.metadata is None:
+            return
+
+        conflicts = [
+            field_name
+            for field_name in _COMMON_METADATA_FIELDS
+            if self._has_legacy_common_field_value(field_name)
+        ]
+        if conflicts:
+            joined = ", ".join(conflicts)
+            raise ValidationError(
+                "cannot set Zenodo common metadata fields when metadata is provided: "
+                f"{joined}"
+            )
+
+    def _has_legacy_common_field_value(self, field_name: str) -> bool:
+        value = getattr(self, field_name)
+        if field_name == "language":
+            return value not in {None, "eng"}
+        if isinstance(value, list):
+            return bool(value)
+        return value is not None
+
 
 def _required_string(value: object, field_name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValidationError(f"{field_name} must be a non-empty string")
     return value.strip()
+
+
+def _creator_to_api_dict(
+    creator: Creator | common_metadata.Person,
+) -> dict[str, str]:
+    if isinstance(creator, Creator):
+        return creator.to_api_dict()
+    data = {"name": _person_api_name(creator)}
+    _add_if_present(data, "affiliation", creator.affiliation)
+    _add_if_present(data, "orcid", creator.orcid)
+    _add_if_present(data, "gnd", creator.gnd)
+    return data
+
+
+def _person_api_name(person: common_metadata.Person) -> str:
+    if person.name:
+        return person.name
+    if person.family_name and person.given_names:
+        return f"{person.family_name}, {person.given_names}"
+    raise ValidationError(
+        "person requires either name or both family_name and given_names"
+    )
+
+
+def _related_identifier_to_api_dict(
+    related_identifier: RelatedIdentifier | common_metadata.RelatedIdentifier,
+) -> dict[str, str]:
+    if isinstance(related_identifier, RelatedIdentifier):
+        return related_identifier.to_api_dict()
+    data = {
+        "identifier": _required_string(related_identifier.identifier, "identifier"),
+        "relation": _required_string(related_identifier.relation, "relation"),
+    }
+    _add_if_present(data, "resource_type", related_identifier.resource_type)
+    return data
+
+
+def _contributor_to_api_dict(
+    contributor: Contributor | common_metadata.Contributor,
+) -> dict[str, str]:
+    if isinstance(contributor, Contributor):
+        return contributor.to_api_dict()
+    data = {
+        "name": _person_api_name(contributor.person),
+        "type": _required_string(contributor.role, "contributor role"),
+    }
+    _add_if_present(data, "affiliation", contributor.person.affiliation)
+    _add_if_present(data, "orcid", contributor.person.orcid)
+    _add_if_present(data, "gnd", contributor.person.gnd)
+    return data
 
 
 def _optional_string(value: object) -> str | None:
