@@ -1,4 +1,9 @@
-"""Service-independent publication metadata models."""
+"""Service-independent publication metadata models.
+
+This module defines courier's reusable publication metadata vocabulary. It must
+not import service-specific clients or adapters; publication services should
+adapt these models into their own API payloads.
+"""
 
 from __future__ import annotations
 
