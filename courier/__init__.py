@@ -8,11 +8,16 @@ except importlib.metadata.PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
 from courier.http_client import HttpClient
+from courier.metadata import Contributor, Person, PublicationMetadata, RelatedIdentifier
 from courier.services.ontodocker import OntodockerClient
 from courier.services.zenodo import ZenodoClient
 
 __all__ = [
+    "Contributor",
     "HttpClient",
     "OntodockerClient",
+    "Person",
+    "PublicationMetadata",
+    "RelatedIdentifier",
     "ZenodoClient",
 ]

@@ -1,4 +1,5 @@
 import unittest
+import warnings
 from typing import Any, cast
 
 from courier.exceptions import ValidationError
@@ -9,6 +10,10 @@ from courier.services.zenodo.metadata import Creator, ZenodoMetadata
 from courier.services.zenodo.models import DepositionInfo
 
 from ._helpers import FakeResponse, FakeSession, deposition_payload
+
+_LEGACY_METADATA_WARNING = (
+    "Setting publication metadata fields directly on ZenodoMetadata is deprecated.*"
+)
 
 
 def _publication_metadata() -> PublicationMetadata:
@@ -23,6 +28,16 @@ def _publication_metadata() -> PublicationMetadata:
 
 
 class TestDepositionsResource(unittest.TestCase):
+    def setUp(self):
+        self._warning_context = warnings.catch_warnings()
+        self._warning_context.__enter__()
+        self.addCleanup(self._warning_context.__exit__, None, None, None)
+        warnings.filterwarnings(
+            "ignore",
+            message=_LEGACY_METADATA_WARNING,
+            category=DeprecationWarning,
+        )
+
     def test_deposition_action_url_rejects_unknown_action(self):
         with self.assertRaisesRegex(ValidationError, "unsupported deposition action"):
             deposition_action_url("https://zenodo.org", 42, "archive")
