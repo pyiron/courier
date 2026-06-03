@@ -166,7 +166,9 @@ class TestResourcesResource(unittest.TestCase):
         self.assertEqual(session.calls[0]["json"]["id"], "res-2")
 
     def test_delete_calls_resource_delete(self):
-        session = FakeSession([FakeResponse(json_value={"success": True, "result": None})])
+        session = FakeSession(
+            [FakeResponse(json_value={"success": True, "result": None})]
+        )
         client = CkanClient("ckan.test", session=cast(Any, session))
 
         result = client.resources.delete("res-1")

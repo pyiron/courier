@@ -75,7 +75,9 @@ class TestPackagesResource(unittest.TestCase):
         info = client.packages.show("dataset")
 
         self.assertEqual(info.id, "pkg-1")
-        self.assertEqual(session.calls[0]["url"], "https://ckan.test/api/3/action/package_show")
+        self.assertEqual(
+            session.calls[0]["url"], "https://ckan.test/api/3/action/package_show"
+        )
         self.assertEqual(session.calls[0]["json"], {"id": "dataset"})
 
     def test_show_accepts_package_model(self):
@@ -106,7 +108,9 @@ class TestPackagesResource(unittest.TestCase):
 
         self.assertEqual(result.count, 1)
         self.assertEqual(result.results[0].name, "dataset")
-        self.assertEqual(session.calls[0]["url"], "https://ckan.test/api/3/action/package_search")
+        self.assertEqual(
+            session.calls[0]["url"], "https://ckan.test/api/3/action/package_search"
+        )
         self.assertEqual(session.calls[0]["json"], {"rows": 5, "q": "steel"})
 
     def test_search_without_query_uses_filters_only(self):
@@ -136,8 +140,12 @@ class TestPackagesResource(unittest.TestCase):
         info = client.packages.patch("dataset", {"title": "New title"})
 
         self.assertEqual(info.title, "Dataset")
-        self.assertEqual(session.calls[0]["url"], "https://ckan.test/api/3/action/package_patch")
-        self.assertEqual(session.calls[0]["json"], {"title": "New title", "id": "dataset"})
+        self.assertEqual(
+            session.calls[0]["url"], "https://ckan.test/api/3/action/package_patch"
+        )
+        self.assertEqual(
+            session.calls[0]["json"], {"title": "New title", "id": "dataset"}
+        )
 
     def test_patch_uses_package_model_id(self):
         session = FakeSession(
@@ -151,13 +159,17 @@ class TestPackagesResource(unittest.TestCase):
         self.assertEqual(session.calls[0]["json"]["id"], "pkg-2")
 
     def test_delete_calls_package_delete(self):
-        session = FakeSession([FakeResponse(json_value={"success": True, "result": None})])
+        session = FakeSession(
+            [FakeResponse(json_value={"success": True, "result": None})]
+        )
         client = CkanClient("ckan.test", session=cast(Any, session))
 
         result = client.packages.delete("dataset")
 
         self.assertIsNone(result)
-        self.assertEqual(session.calls[0]["url"], "https://ckan.test/api/3/action/package_delete")
+        self.assertEqual(
+            session.calls[0]["url"], "https://ckan.test/api/3/action/package_delete"
+        )
         self.assertEqual(session.calls[0]["json"], {"id": "dataset"})
 
     def test_blank_package_id_is_rejected(self):

@@ -37,7 +37,9 @@ class ResourcesResource:
 
     def show(self, resource: str | CkanResourceInfo) -> CkanResourceInfo:
         """Show a CKAN resource by id or resource model."""
-        result = self.client.action.call("resource_show", {"id": _resource_id(resource)})
+        result = self.client.action.call(
+            "resource_show", {"id": _resource_id(resource)}
+        )
         return CkanResourceInfo.from_dict(result)
 
     def patch(

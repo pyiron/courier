@@ -51,9 +51,7 @@ class PackagesResource:
         """Partially update a CKAN package."""
         data = dict(payload)
         data["id"] = _package_id(package)
-        return CkanPackageInfo.from_dict(
-            self.client.action.call("package_patch", data)
-        )
+        return CkanPackageInfo.from_dict(self.client.action.call("package_patch", data))
 
     def delete(self, package: str | CkanPackageInfo) -> None:
         """Delete a CKAN package."""
