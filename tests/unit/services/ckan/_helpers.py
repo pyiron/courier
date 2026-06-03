@@ -28,3 +28,17 @@ class FakeResponse:
         if self._json_exc is not None:
             raise self._json_exc
         return self._json_value
+
+
+class FakeSession:
+    def __init__(self, responses: list[FakeResponse] | None = None):
+        self.headers: dict[str, str] = {}
+        self.calls: list[dict[str, Any]] = []
+        self.responses = list(responses or [FakeResponse()])
+
+    def request(self, method: str, url: str, **kwargs: Any) -> FakeResponse:
+        self.calls.append({"method": method, "url": url, **kwargs})
+        response = self.responses.pop(0)
+        response.url = url
+        response.request = FakeRequest(method)
+        return response
