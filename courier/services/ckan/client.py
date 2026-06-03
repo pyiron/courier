@@ -6,6 +6,8 @@ import requests
 
 from courier.http_client import HttpClient
 from courier.services.ckan.actions import ActionsResource
+from courier.services.ckan.packages import PackagesResource
+from courier.services.ckan.resources import ResourcesResource
 
 
 class CkanClient(HttpClient):
@@ -32,6 +34,8 @@ class CkanClient(HttpClient):
         self._api_token: str | None = None
         self.api_token = api_token
         self.action = ActionsResource(self)
+        self.packages = PackagesResource(self)
+        self.resources = ResourcesResource(self)
 
     @property
     def api_token(self) -> str | None:

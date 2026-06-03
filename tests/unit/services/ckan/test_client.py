@@ -12,6 +12,8 @@ class TestCkanClientInit(unittest.TestCase):
 
         self.assertEqual(client.base_url, "https://ckan.test")
         self.assertIs(client.action.client, client)
+        self.assertIs(client.packages.client, client)
+        self.assertIs(client.resources.client, client)
 
     def test_default_scheme_is_used_when_address_has_no_scheme(self):
         client = CkanClient(
