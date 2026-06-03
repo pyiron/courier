@@ -32,12 +32,23 @@ class ActionsResource:
 
     client: CkanClient
 
-    def call(self, action: str, data: Mapping[str, Any] | None = None) -> Any:
+    def call(
+        self,
+        action: str,
+        data: Mapping[str, Any] | None = None,
+        *,
+        files: dict[str, Any] | None = None,
+    ) -> Any:
         """Call a CKAN action and return its unwrapped result."""
         payload = dict(data) if data is not None else {}
+        request_kwargs: dict[str, Any]
+        if files is None:
+            request_kwargs = {"json": payload}
+        else:
+            request_kwargs = {"data": payload, "files": files}
         resp = self.client.request(
             "POST",
             action_url(self.client.base_url, action),
-            json=payload,
+            **request_kwargs,
         )
         return read_ckan_result(resp)

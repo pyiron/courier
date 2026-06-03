@@ -118,6 +118,26 @@ class TestActionsResource(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "action must be non-empty"):
             client.action.call(" ")
 
+    def test_call_uses_multipart_request_when_files_are_provided(self):
+        session = FakeSession(
+            [FakeResponse(json_value={"success": True, "result": {"id": "res-1"}})]
+        )
+        client = CkanClient("ckan.test", session=cast(Any, session))
+
+        result = client.action.call(
+            "resource_create",
+            {"package_id": "pkg-1"},
+            files={"upload": ("data.ttl", b"content")},
+        )
+
+        self.assertEqual(result, {"id": "res-1"})
+        self.assertEqual(session.calls[0]["data"], {"package_id": "pkg-1"})
+        self.assertEqual(
+            session.calls[0]["files"],
+            {"upload": ("data.ttl", b"content")},
+        )
+        self.assertIsNone(session.calls[0]["json"])
+
 
 if __name__ == "__main__":
     unittest.main()

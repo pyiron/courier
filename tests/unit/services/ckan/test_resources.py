@@ -1,4 +1,6 @@
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, cast
 
 from courier.exceptions import ValidationError
@@ -65,6 +67,48 @@ class TestResourcesResource(unittest.TestCase):
                 "url": "https://example.test",
             },
         )
+
+    def test_create_with_upload_uses_multipart_request(self):
+        session = FakeSession(
+            [FakeResponse(json_value={"success": True, "result": resource_payload()})]
+        )
+        client = CkanClient("ckan.test", session=cast(Any, session))
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "data.ttl"
+            path.write_text("@prefix x: <https://example.test/> .")
+
+            info = client.resources.create(
+                {"package_id": "pkg-1", "name": "data.ttl"},
+                upload=path,
+            )
+
+        self.assertEqual(info.id, "res-1")
+        self.assertEqual(
+            session.calls[0]["url"],
+            "https://ckan.test/api/3/action/resource_create",
+        )
+        self.assertEqual(
+            session.calls[0]["data"],
+            {"package_id": "pkg-1", "name": "data.ttl"},
+        )
+        self.assertIsNone(session.calls[0]["json"])
+        upload = session.calls[0]["files"]["upload"]
+        self.assertEqual(upload[0], "data.ttl")
+        self.assertTrue(upload[1].closed)
+
+    def test_create_with_upload_rejects_payload_upload_field(self):
+        client = CkanClient("ckan.test", session=cast(Any, FakeSession()))
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "data.ttl"
+            path.write_text("@prefix x: <https://example.test/> .")
+
+            with self.assertRaisesRegex(ValidationError, "upload field"):
+                client.resources.create(
+                    {"package_id": "pkg-1", "upload": "not-a-file"},
+                    upload=path,
+                )
 
     def test_show_calls_resource_show_with_id(self):
         session = FakeSession(
