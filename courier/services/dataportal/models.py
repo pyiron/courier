@@ -54,8 +54,7 @@ class DataportalDatasetSearchResult:
         return cls(
             count=result.count,
             results=[
-                DataportalDatasetInfo.from_ckan(package)
-                for package in result.results
+                DataportalDatasetInfo.from_ckan(package) for package in result.results
             ],
             raw=dict(result.raw),
         )

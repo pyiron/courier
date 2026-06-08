@@ -81,6 +81,4 @@ def _metadata_payload(metadata: DatasetMetadata) -> dict[str, Any]:
         )
     if isinstance(metadata, Mapping):
         return dict(metadata)
-    raise ValidationError(
-        "dataset metadata must be DataportalMetadata or a mapping"
-    )
+    raise ValidationError("dataset metadata must be DataportalMetadata or a mapping")

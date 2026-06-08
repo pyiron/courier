@@ -42,7 +42,9 @@ class StubPackagesResource:
         self.calls.append(("create", payload))
         return CkanPackageInfo.from_dict(package_payload())
 
-    def search(self, query: str | None = None, **filters: Any) -> CkanPackageSearchResult:
+    def search(
+        self, query: str | None = None, **filters: Any
+    ) -> CkanPackageSearchResult:
         self.calls.append(("search", query, filters))
         return CkanPackageSearchResult.from_dict(
             {"count": 1, "results": [package_payload()]}
