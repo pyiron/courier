@@ -6,7 +6,43 @@ from dataclasses import dataclass
 from typing import Any
 
 from courier.exceptions import ValidationError
-from courier.services.ckan.models import CkanPackageInfo, CkanPackageSearchResult
+from courier.services.ckan.models import (
+    CkanPackageInfo,
+    CkanPackageSearchResult,
+    CkanResourceInfo,
+)
+
+
+@dataclass(frozen=True)
+class DataportalAssetInfo:
+    """Important fields returned for a Dataportal asset."""
+
+    id: str
+    dataset_id: str | None
+    name: str | None
+    description: str | None
+    url: str | None
+    format: str | None
+    content_type: str | None
+    size: int | None
+    raw: dict[str, Any]
+
+    @classmethod
+    def from_ckan(cls, resource: CkanResourceInfo) -> DataportalAssetInfo:
+        """Build a Dataportal asset model from an internal CKAN model."""
+        return cls(
+            id=resource.id,
+            dataset_id=resource.package_id,
+            name=resource.name,
+            description=_optional_string(resource.raw.get("description")),
+            url=resource.url,
+            format=resource.format,
+            content_type=resource.mimetype,
+            size=_optional_int(
+                resource.raw.get("size", resource.raw.get("filesize"))
+            ),
+            raw=dict(resource.raw),
+        )
 
 
 @dataclass(frozen=True)
@@ -81,3 +117,22 @@ def _optional_bool(value: object) -> bool | None:
         if normalized == "false":
             return False
     raise ValidationError("private must be a boolean value")
+
+
+def _optional_int(value: object) -> int | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        raise ValidationError("asset size must be an integer")
+    if isinstance(value, int):
+        size = value
+    elif isinstance(value, str):
+        try:
+            size = int(value)
+        except ValueError as exc:
+            raise ValidationError("asset size must be an integer") from exc
+    else:
+        raise ValidationError("asset size must be an integer")
+    if size < 0:
+        raise ValidationError("asset size must be non-negative")
+    return size
