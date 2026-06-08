@@ -2,6 +2,7 @@ import unittest
 from typing import Any, cast
 
 import courier
+from courier.metadata import Person, PublicationMetadata
 from courier.services.dataportal import DataportalClient
 
 from ._helpers import FakeSession
@@ -42,6 +43,19 @@ class TestDataportalClient(unittest.TestCase):
 
     def test_client_is_not_exported_from_top_level_package(self):
         self.assertFalse(hasattr(courier, "DataportalClient"))
+
+    def test_client_construction_does_not_accept_publication_metadata(self):
+        metadata = PublicationMetadata(
+            title="Dataset",
+            description="Data.",
+            creators=[Person(name="Doe, Jane")],
+        )
+
+        with self.assertRaises(TypeError):
+            cast(Any, DataportalClient)(
+                metadata=metadata,
+                session=cast(Any, FakeSession()),
+            )
 
 
 if __name__ == "__main__":
