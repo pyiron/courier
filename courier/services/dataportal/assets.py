@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlsplit
 
@@ -22,6 +23,42 @@ class AssetsResource:
     """Dataportal-facing asset operations."""
 
     client: DataportalClient
+
+    def upload(
+        self,
+        dataset: str | DataportalDatasetInfo,
+        path: str | Path,
+        *,
+        name: str | None = None,
+        description: str | None = None,
+        format: str | None = None,
+        content_type: str | None = None,
+    ) -> DataportalAssetInfo:
+        """Upload a local file as a Dataportal asset."""
+        upload_path = Path(path)
+        if not upload_path.is_file():
+            raise ValidationError(f"upload path must be a file: {upload_path}")
+
+        filename = _required_string(upload_path.name, "upload filename")
+        normalized_content_type = (
+            _required_string(content_type, "content_type")
+            if content_type is not None
+            else None
+        )
+        payload: dict[str, Any] = {
+            "package_id": _dataset_id(dataset),
+            "name": _required_string(name, "name") if name is not None else filename,
+        }
+        _add_if_present(payload, "description", description)
+        _add_if_present(payload, "format", format)
+        _add_if_present(payload, "mimetype", normalized_content_type)
+
+        resource = self.client.resources.create(
+            payload,
+            upload=upload_path,
+            content_type=normalized_content_type,
+        )
+        return DataportalAssetInfo.from_ckan(resource)
 
     def create_url(
         self,

@@ -128,6 +128,50 @@ class TestResourcesResource(unittest.TestCase):
         ):
             client.resources.create({"package_id": "pkg-1"}, upload="")
 
+    def test_create_with_upload_sets_multipart_content_type(self):
+        session = FakeSession(
+            [FakeResponse(json_value={"success": True, "result": resource_payload()})]
+        )
+        client = CkanClient("ckan.test", session=cast(Any, session))
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "data.ttl"
+            path.write_text("@prefix x: <https://example.test/> .")
+
+            _ = client.resources.create(
+                {"package_id": "pkg-1"},
+                upload=path,
+                content_type="text/turtle",
+            )
+
+        upload = session.calls[0]["files"]["upload"]
+        self.assertEqual(upload[0], "data.ttl")
+        self.assertTrue(upload[1].closed)
+        self.assertEqual(upload[2], "text/turtle")
+
+    def test_content_type_requires_upload_path(self):
+        client = CkanClient("ckan.test", session=cast(Any, FakeSession()))
+
+        with self.assertRaisesRegex(ValidationError, "requires an upload path"):
+            client.resources.create(
+                {"package_id": "pkg-1", "url": "https://example.test/data.ttl"},
+                content_type="text/turtle",
+            )
+
+    def test_blank_upload_content_type_is_rejected(self):
+        client = CkanClient("ckan.test", session=cast(Any, FakeSession()))
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "data.ttl"
+            path.write_text("@prefix x: <https://example.test/> .")
+
+            with self.assertRaisesRegex(ValidationError, "content_type"):
+                client.resources.create(
+                    {"package_id": "pkg-1"},
+                    upload=path,
+                    content_type=" ",
+                )
+
     def test_show_calls_resource_show_with_id(self):
         session = FakeSession(
             [FakeResponse(json_value={"success": True, "result": resource_payload()})]

@@ -1,4 +1,6 @@
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, cast
 
 from courier.exceptions import ValidationError
@@ -60,6 +62,86 @@ def client_with_stub() -> tuple[DataportalClient, StubResourcesResource]:
 
 
 class TestAssetsResource(unittest.TestCase):
+    def test_upload_delegates_file_and_metadata(self):
+        client, resources = client_with_stub()
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "measurements.csv"
+            path.write_text("temperature,value\n300,1\n")
+
+            asset = client.assets.upload(
+                "pkg-1",
+                path,
+                name="data.csv",
+                description="Measurements.",
+                format="csv",
+                content_type="text/csv",
+            )
+
+        self.assertEqual(asset.id, "res-1")
+        self.assertEqual(
+            resources.calls,
+            [
+                (
+                    "create",
+                    {
+                        "package_id": "pkg-1",
+                        "name": "data.csv",
+                        "description": "Measurements.",
+                        "format": "csv",
+                        "mimetype": "text/csv",
+                    },
+                    {"upload": path, "content_type": "text/csv"},
+                )
+            ],
+        )
+
+    def test_upload_uses_filename_as_default_name(self):
+        client, resources = client_with_stub()
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "measurements.csv"
+            path.write_text("temperature,value\n300,1\n")
+
+            _ = client.assets.upload("pkg-1", path)
+
+        self.assertEqual(resources.calls[0][1]["name"], "measurements.csv")
+        self.assertEqual(
+            resources.calls[0][2],
+            {"upload": path, "content_type": None},
+        )
+
+    def test_upload_rejects_non_file_path(self):
+        client, resources = client_with_stub()
+
+        with (
+            TemporaryDirectory() as directory,
+            self.assertRaisesRegex(ValidationError, "must be a file"),
+        ):
+            client.assets.upload("pkg-1", directory)
+
+        self.assertEqual(resources.calls, [])
+
+    def test_upload_rejects_blank_optional_metadata(self):
+        client, resources = client_with_stub()
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "measurements.csv"
+            path.write_text("temperature,value\n300,1\n")
+
+            for field_name in ("name", "description", "format", "content_type"):
+                with (
+                    self.subTest(field_name=field_name),
+                    self.assertRaisesRegex(ValidationError, field_name),
+                ):
+                    client.assets.upload(
+                        "pkg-1",
+                        path,
+                        **{field_name: " "},
+                    )
+
+        self.assertEqual(resources.calls, [])
+
     def test_create_url_delegates_ckan_payload_and_converts_result(self):
         client, resources = client_with_stub()
 
