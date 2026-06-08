@@ -172,6 +172,44 @@ class TestAssetsResource(unittest.TestCase):
             ],
         )
 
+    def test_upload_rdf_uses_turtle_defaults(self):
+        client, resources = client_with_stub()
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "data.ttl"
+            path.write_text("@prefix x: <https://example.test/> .")
+
+            asset = client.assets.upload_rdf("pkg-1", path)
+
+        self.assertEqual(asset.id, "res-1")
+        self.assertEqual(resources.calls[0][1]["format"], "ttl")
+        self.assertEqual(resources.calls[0][1]["mimetype"], "text/turtle")
+        self.assertEqual(resources.calls[0][2]["content_type"], "text/turtle")
+
+    def test_upload_rdf_allows_format_and_content_type_overrides(self):
+        client, resources = client_with_stub()
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "data.rdf"
+            path.write_text("<rdf:RDF />")
+
+            _ = client.assets.upload_rdf(
+                "pkg-1",
+                path,
+                format="rdf",
+                content_type="application/rdf+xml",
+            )
+
+        self.assertEqual(resources.calls[0][1]["format"], "rdf")
+        self.assertEqual(
+            resources.calls[0][1]["mimetype"],
+            "application/rdf+xml",
+        )
+        self.assertEqual(
+            resources.calls[0][2]["content_type"],
+            "application/rdf+xml",
+        )
+
     def test_create_url_accepts_dataset_model(self):
         client, resources = client_with_stub()
         dataset = DataportalDatasetInfo.from_ckan(

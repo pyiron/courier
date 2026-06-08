@@ -79,6 +79,26 @@ class AssetsResource:
         _add_if_present(payload, "format", format)
         return DataportalAssetInfo.from_ckan(self.client.resources.create(payload))
 
+    def upload_rdf(
+        self,
+        dataset: str | DataportalDatasetInfo,
+        path: str | Path,
+        *,
+        name: str | None = None,
+        description: str | None = None,
+        format: str = "ttl",
+        content_type: str = "text/turtle",
+    ) -> DataportalAssetInfo:
+        """Upload an RDF file with conservative Turtle defaults."""
+        return self.upload(
+            dataset,
+            path,
+            name=name,
+            description=description,
+            format=format,
+            content_type=content_type,
+        )
+
     def show(self, asset: str | DataportalAssetInfo) -> DataportalAssetInfo:
         """Retrieve an asset by id or asset model."""
         return DataportalAssetInfo.from_ckan(
