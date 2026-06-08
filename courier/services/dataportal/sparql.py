@@ -114,7 +114,10 @@ def _dataset_endpoint(dataset: DataportalDatasetInfo) -> str:
         if not isinstance(resource, Mapping):
             continue
         format_value = resource.get("format")
-        if not isinstance(format_value, str) or format_value.strip().lower() != "sparql":
+        if (
+            not isinstance(format_value, str)
+            or format_value.strip().lower() != "sparql"
+        ):
             continue
         url = resource.get("url")
         if not isinstance(url, str):
@@ -157,9 +160,7 @@ def _columns(columns: list[str]) -> list[str]:
     if (
         not isinstance(columns, list)
         or not columns
-        or any(
-            not isinstance(column, str) or not column.strip() for column in columns
-        )
+        or any(not isinstance(column, str) or not column.strip() for column in columns)
     ):
         raise ValidationError("columns must be a non-empty list of strings")
     return [column.strip() for column in columns]
