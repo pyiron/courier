@@ -1,0 +1,94 @@
+"""Dataportal asset operations."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
+from urllib.parse import urlsplit
+
+from courier.exceptions import ValidationError
+from courier.services.dataportal.models import (
+    DataportalAssetInfo,
+    DataportalDatasetInfo,
+)
+
+if TYPE_CHECKING:
+    from courier.services.dataportal.client import DataportalClient
+
+
+@dataclass
+class AssetsResource:
+    """Dataportal-facing asset operations."""
+
+    client: DataportalClient
+
+    def create_url(
+        self,
+        dataset: str | DataportalDatasetInfo,
+        *,
+        url: str,
+        name: str | None = None,
+        description: str | None = None,
+        format: str | None = None,
+    ) -> DataportalAssetInfo:
+        """Create an asset that references an external HTTP(S) URL."""
+        payload: dict[str, Any] = {
+            "package_id": _dataset_id(dataset),
+            "url": _absolute_http_url(url),
+        }
+        _add_if_present(payload, "name", name)
+        _add_if_present(payload, "description", description)
+        _add_if_present(payload, "format", format)
+        return DataportalAssetInfo.from_ckan(self.client.resources.create(payload))
+
+    def show(self, asset: str | DataportalAssetInfo) -> DataportalAssetInfo:
+        """Retrieve an asset by id or asset model."""
+        return DataportalAssetInfo.from_ckan(
+            self.client.resources.show(_asset_id(asset))
+        )
+
+    def patch(
+        self,
+        asset: str | DataportalAssetInfo,
+        payload: Mapping[str, Any],
+    ) -> DataportalAssetInfo:
+        """Partially update asset metadata."""
+        return DataportalAssetInfo.from_ckan(
+            self.client.resources.patch(_asset_id(asset), payload)
+        )
+
+    def delete(self, asset: str | DataportalAssetInfo) -> None:
+        """Delete an asset."""
+        self.client.resources.delete(_asset_id(asset))
+
+
+def _dataset_id(dataset: str | DataportalDatasetInfo) -> str:
+    if isinstance(dataset, DataportalDatasetInfo):
+        return dataset.id
+    return _required_string(dataset, "dataset id")
+
+
+def _asset_id(asset: str | DataportalAssetInfo) -> str:
+    if isinstance(asset, DataportalAssetInfo):
+        return asset.id
+    return _required_string(asset, "asset id")
+
+
+def _absolute_http_url(value: str) -> str:
+    url = _required_string(value, "url")
+    parts = urlsplit(url)
+    if parts.scheme.lower() not in {"http", "https"} or not parts.netloc:
+        raise ValidationError("url must be an absolute HTTP(S) URL")
+    return url
+
+
+def _required_string(value: object, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValidationError(f"{field_name} must be a non-empty string")
+    return value.strip()
+
+
+def _add_if_present(data: dict[str, Any], key: str, value: str | None) -> None:
+    if value is not None:
+        data[key] = _required_string(value, key)
