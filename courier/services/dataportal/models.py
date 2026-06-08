@@ -38,9 +38,7 @@ class DataportalAssetInfo:
             url=resource.url,
             format=resource.format,
             content_type=resource.mimetype,
-            size=_optional_int(
-                resource.raw.get("size", resource.raw.get("filesize"))
-            ),
+            size=_optional_int(resource.raw.get("size", resource.raw.get("filesize"))),
             raw=dict(resource.raw),
         )
 
