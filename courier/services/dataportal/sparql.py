@@ -2,16 +2,21 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias
 from urllib.parse import urlsplit
+
+import pandas as pd
+import requests
 
 from courier.exceptions import ValidationError
 from courier.services.dataportal.models import (
     DataportalAssetInfo,
     DataportalDatasetInfo,
 )
+from courier.transport.request import read_text
 
 if TYPE_CHECKING:
     from courier.services.dataportal.client import DataportalClient
@@ -41,6 +46,62 @@ class SparqlResource:
         if "://" in value:
             raise ValidationError("SPARQL endpoint must be an absolute HTTP(S) URL")
         return _dataset_endpoint(self.client.datasets.show(value))
+
+    def query_raw(
+        self,
+        target: SparqlTarget,
+        query: str,
+        *,
+        accept: str = "application/sparql-results+json",
+    ) -> str:
+        """Execute a SPARQL query and return the response body as text."""
+        query_text = _required_string(query, "query")
+        accept_value = _required_string(accept, "accept")
+        endpoint = self.endpoint(target)
+        params = {"query": query_text}
+        headers = {"Accept": accept_value}
+
+        if _same_origin(endpoint, self.client.base_url):
+            return self.client.get_text(endpoint, params=params, headers=headers)
+
+        response = requests.get(
+            endpoint,
+            params=params,
+            headers=headers,
+            timeout=self.client.timeout,
+            verify=self.client.verify,
+        )
+        return read_text(response)
+
+    def query_json(
+        self,
+        target: SparqlTarget,
+        query: str,
+    ) -> dict[str, Any]:
+        """Execute a SPARQL query and decode its JSON result."""
+        result = json.loads(
+            self.query_raw(
+                target,
+                query,
+                accept="application/sparql-results+json",
+            )
+        )
+        if not isinstance(result, dict):
+            raise ValidationError("SPARQL JSON response must be an object")
+        return result
+
+    def query_df(
+        self,
+        target: SparqlTarget,
+        query: str,
+        columns: list[str],
+    ) -> pd.DataFrame:
+        """Execute a SELECT query and return requested bindings as a DataFrame."""
+        normalized_columns = _columns(columns)
+        return _make_dataframe(
+            self.query_json(target, query),
+            normalized_columns,
+        )
 
 
 def _dataset_endpoint(dataset: DataportalDatasetInfo) -> str:
@@ -77,6 +138,54 @@ def _absolute_http_url(value: str, *, field_name: str) -> str:
 def _is_absolute_http_url(value: str) -> bool:
     parts = urlsplit(value)
     return parts.scheme.lower() in {"http", "https"} and bool(parts.netloc)
+
+
+def _same_origin(left: str, right: str) -> bool:
+    return _origin(left) == _origin(right)
+
+
+def _origin(value: str) -> tuple[str, str, int | None]:
+    parts = urlsplit(value)
+    scheme = parts.scheme.lower()
+    port = parts.port
+    if port is None:
+        port = 443 if scheme == "https" else 80 if scheme == "http" else None
+    return scheme, (parts.hostname or "").lower(), port
+
+
+def _columns(columns: list[str]) -> list[str]:
+    if (
+        not isinstance(columns, list)
+        or not columns
+        or any(
+            not isinstance(column, str) or not column.strip() for column in columns
+        )
+    ):
+        raise ValidationError("columns must be a non-empty list of strings")
+    return [column.strip() for column in columns]
+
+
+def _make_dataframe(
+    result: Mapping[str, Any],
+    columns: list[str],
+) -> pd.DataFrame:
+    raw_results = result.get("results")
+    if not isinstance(raw_results, Mapping):
+        raise ValidationError("SPARQL JSON response must include results")
+    raw_bindings = raw_results.get("bindings")
+    if not isinstance(raw_bindings, list):
+        raise ValidationError("SPARQL JSON response must include results.bindings")
+
+    rows: list[list[Any | None]] = []
+    for binding in raw_bindings:
+        if not isinstance(binding, Mapping):
+            raise ValidationError("SPARQL result bindings must be objects")
+        row: list[Any | None] = []
+        for column in columns:
+            value = binding.get(column)
+            row.append(value.get("value") if isinstance(value, Mapping) else None)
+        rows.append(row)
+    return pd.DataFrame(rows, columns=columns)
 
 
 def _required_string(value: object, field_name: str) -> str:
