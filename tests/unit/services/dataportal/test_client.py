@@ -19,6 +19,7 @@ class TestDataportalClient(unittest.TestCase):
         self.assertIs(client.assets.client, client)
         self.assertIs(client.action.client, client)
         self.assertIs(client.packages.client, client)
+        self.assertIs(client.rdf.client, client)
         self.assertIs(client.resources.client, client)
         self.assertIs(client.datasets.client, client)
 

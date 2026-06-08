@@ -12,12 +12,17 @@ class FakeResponse:
     def json(self) -> Any:
         return self._json_value
 
+    def raise_for_status(self) -> None:
+        return None
+
 
 class FakeSession:
     def __init__(self):
         self.headers: dict[str, str] = {}
         self.calls: list[dict[str, Any]] = []
+        self.response = FakeResponse()
 
     def request(self, method: str, url: str, **kwargs: Any) -> FakeResponse:
         self.calls.append({"method": method, "url": url, **kwargs})
-        return FakeResponse()
+        self.response.url = url
+        return self.response
