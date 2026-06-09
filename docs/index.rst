@@ -9,4 +9,5 @@
    :hidden:
 
    source/examples.rst
+   source/metadata.md
    source/indices.rst
