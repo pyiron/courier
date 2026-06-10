@@ -88,6 +88,26 @@ class TestCkanResponse(unittest.TestCase):
 
         self.assertEqual(ctx.exception.message, "Validation Error")
 
+    def test_failed_action_uses_string_error(self):
+        response = FakeResponse(
+            json_value={"success": False, "error": "Dataset not found"}
+        )
+
+        with self.assertRaises(CkanApiError) as ctx:
+            read_ckan_result(cast(Any, response))
+
+        self.assertEqual(ctx.exception.message, "Dataset not found")
+
+    def test_failed_action_uses_top_level_message(self):
+        response = FakeResponse(
+            json_value={"success": False, "message": "Dataset not found"}
+        )
+
+        with self.assertRaises(CkanApiError) as ctx:
+            read_ckan_result(cast(Any, response))
+
+        self.assertEqual(ctx.exception.message, "Dataset not found")
+
     def test_http_error_uses_response_text_when_payload_is_not_json(self):
         response = FakeResponse(
             status_code=500,
