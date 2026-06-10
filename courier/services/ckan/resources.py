@@ -84,9 +84,8 @@ class ResourcesResource:
 
 
 def _resource_id(resource: str | CkanResourceInfo) -> str:
-    if isinstance(resource, CkanResourceInfo):
-        return resource.id
-    text = str(resource).strip()
+    value = resource.id if isinstance(resource, CkanResourceInfo) else resource
+    text = str(value).strip()
     if not text:
         raise ValidationError("resource id must be non-empty")
     return text

@@ -204,6 +204,13 @@ class TestResourcesResource(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "resource id must be non-empty"):
             client.resources.show(" ")
 
+    def test_blank_resource_model_id_is_rejected(self):
+        client = CkanClient("ckan.test", session=cast(Any, FakeSession()))
+        resource = CkanResourceInfo.from_dict(resource_payload(resource_id=" "))
+
+        with self.assertRaisesRegex(ValidationError, "resource id must be non-empty"):
+            client.resources.show(resource)
+
 
 if __name__ == "__main__":
     unittest.main()
