@@ -41,6 +41,15 @@ class TestCkanResourceModels(unittest.TestCase):
         self.assertEqual(info.mimetype, "text/turtle")
         self.assertEqual(info.raw["custom"], "preserved")
 
+    def test_resource_info_accepts_missing_optional_fields(self):
+        info = CkanResourceInfo.from_dict({"id": "res-1"})
+
+        self.assertIsNone(info.name)
+        self.assertIsNone(info.package_id)
+        self.assertIsNone(info.url)
+        self.assertIsNone(info.format)
+        self.assertIsNone(info.mimetype)
+
 
 class TestResourcesResource(unittest.TestCase):
     def test_create_calls_resource_create_and_parses_response(self):
@@ -109,6 +118,15 @@ class TestResourcesResource(unittest.TestCase):
                     {"package_id": "pkg-1", "upload": "not-a-file"},
                     upload=path,
                 )
+
+    def test_create_with_upload_rejects_empty_path(self):
+        client = CkanClient("ckan.test", session=cast(Any, FakeSession()))
+
+        with self.assertRaisesRegex(
+            ValidationError,
+            "upload filename must be non-empty",
+        ):
+            client.resources.create({"package_id": "pkg-1"}, upload="")
 
     def test_show_calls_resource_show_with_id(self):
         session = FakeSession(
