@@ -178,6 +178,13 @@ class TestPackagesResource(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "package id must be non-empty"):
             client.packages.show(" ")
 
+    def test_blank_package_model_id_is_rejected(self):
+        client = CkanClient("ckan.test", session=cast(Any, FakeSession()))
+        package = CkanPackageInfo.from_dict(package_payload(package_id=" "))
+
+        with self.assertRaisesRegex(ValidationError, "package id must be non-empty"):
+            client.packages.show(package)
+
 
 if __name__ == "__main__":
     unittest.main()

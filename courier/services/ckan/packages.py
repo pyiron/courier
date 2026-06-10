@@ -59,9 +59,8 @@ class PackagesResource:
 
 
 def _package_id(package: str | CkanPackageInfo) -> str:
-    if isinstance(package, CkanPackageInfo):
-        return package.id
-    text = str(package).strip()
+    value = package.id if isinstance(package, CkanPackageInfo) else package
+    text = str(value).strip()
     if not text:
         raise ValidationError("package id must be non-empty")
     return text
