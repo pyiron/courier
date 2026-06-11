@@ -142,7 +142,7 @@ def _absolute_http_url(value: str) -> str:
 
 def _required_string(value: object, field_name: str) -> str:
     if not isinstance(value, str) or not value.strip():
-        raise ValidationError(f"{field_name} must be a non-empty string")
+        raise ValidationError(f"{field_name} must be non-empty")
     return value.strip()
 
 

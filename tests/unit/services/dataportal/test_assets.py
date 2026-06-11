@@ -282,9 +282,15 @@ class TestAssetsResource(unittest.TestCase):
     def test_blank_dataset_and_asset_ids_are_rejected(self):
         client, resources = client_with_stub()
 
-        with self.assertRaisesRegex(ValidationError, "dataset id"):
+        with self.assertRaisesRegex(
+            ValidationError,
+            "dataset id must be non-empty",
+        ):
             client.assets.create_url(" ", url="https://example.test/data.csv")
-        with self.assertRaisesRegex(ValidationError, "asset id"):
+        with self.assertRaisesRegex(
+            ValidationError,
+            "asset id must be non-empty",
+        ):
             client.assets.show(" ")
 
         self.assertEqual(resources.calls, [])
