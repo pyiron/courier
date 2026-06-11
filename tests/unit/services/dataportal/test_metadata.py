@@ -153,6 +153,16 @@ class TestDataportalMetadata(unittest.TestCase):
                 extras={"publication_date": "override"},
             )
 
+    def test_duplicate_normalized_extra_keys_are_rejected(self):
+        with self.assertRaisesRegex(
+            ValidationError,
+            "duplicate extra key after normalization: 'profile'",
+        ):
+            DataportalMetadata(
+                metadata=publication_metadata(),
+                extras={"profile": "first", " profile ": "second"},
+            )
+
     def test_blank_dataportal_fields_are_rejected(self):
         cases = [
             ({"name": " "}, "name"),

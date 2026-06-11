@@ -198,9 +198,6 @@ def _required_string(value: object, field_name: str) -> str:
     return value.strip()
 
 
-def _add_if_present(data: dict[str, Any], key: str, value: object) -> None:
-    if isinstance(value, str):
-        if value.strip():
-            data[key] = value.strip()
-    elif value is not None:
-        data[key] = value
+def _add_if_present(data: dict[str, Any], key: str, value: str | None) -> None:
+    if value is not None and value.strip():
+        data[key] = value.strip()
