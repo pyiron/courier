@@ -2,5 +2,14 @@
 
 from courier.services.dataportal.client import DataportalClient
 from courier.services.dataportal.metadata import DataportalMetadata
+from courier.services.dataportal.models import (
+    DataportalDatasetInfo,
+    DataportalDatasetSearchResult,
+)
 
-__all__ = ["DataportalClient", "DataportalMetadata"]
+__all__ = [
+    "DataportalClient",
+    "DataportalDatasetInfo",
+    "DataportalDatasetSearchResult",
+    "DataportalMetadata",
+]
