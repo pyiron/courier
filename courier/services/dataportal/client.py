@@ -7,6 +7,8 @@ import requests
 from courier.services.ckan.client import CkanClient
 from courier.services.dataportal.assets import AssetsResource
 from courier.services.dataportal.datasets import DatasetsResource
+from courier.services.dataportal.rdf import RdfResource
+from courier.services.dataportal.sparql import SparqlResource
 
 DEFAULT_DATAPORTAL_ADDRESS = "dataportal.material-digital.de"
 
@@ -34,3 +36,5 @@ class DataportalClient(CkanClient):
         )
         self.assets = AssetsResource(self)
         self.datasets = DatasetsResource(self)
+        self.rdf = RdfResource(self)
+        self.sparql = SparqlResource(self)

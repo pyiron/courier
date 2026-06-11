@@ -19,7 +19,9 @@ class TestDataportalClient(unittest.TestCase):
         self.assertIs(client.assets.client, client)
         self.assertIs(client.action.client, client)
         self.assertIs(client.packages.client, client)
+        self.assertIs(client.rdf.client, client)
         self.assertIs(client.resources.client, client)
+        self.assertIs(client.sparql.client, client)
         self.assertIs(client.datasets.client, client)
 
     def test_custom_address_and_default_scheme_are_supported(self):
