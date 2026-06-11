@@ -16,6 +16,7 @@ class TestDataportalClient(unittest.TestCase):
             client.base_url,
             "https://dataportal.material-digital.de",
         )
+        self.assertIs(client.assets.client, client)
         self.assertIs(client.action.client, client)
         self.assertIs(client.packages.client, client)
         self.assertIs(client.resources.client, client)

@@ -5,6 +5,7 @@ from __future__ import annotations
 import requests
 
 from courier.services.ckan.client import CkanClient
+from courier.services.dataportal.assets import AssetsResource
 from courier.services.dataportal.datasets import DatasetsResource
 
 DEFAULT_DATAPORTAL_ADDRESS = "dataportal.material-digital.de"
@@ -31,4 +32,5 @@ class DataportalClient(CkanClient):
             timeout=timeout,
             session=session,
         )
+        self.assets = AssetsResource(self)
         self.datasets = DatasetsResource(self)

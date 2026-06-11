@@ -27,10 +27,17 @@ class ResourcesResource:
         payload: Mapping[str, Any],
         *,
         upload: UploadPath | None = None,
+        content_type: str | None = None,
     ) -> CkanResourceInfo:
         """Create a CKAN resource."""
         if upload is not None:
-            return self._create_with_upload(payload, upload)
+            return self._create_with_upload(
+                payload,
+                upload,
+                content_type=content_type,
+            )
+        if content_type is not None:
+            raise ValidationError("content_type requires an upload path")
         return CkanResourceInfo.from_dict(
             self.client.action.call("resource_create", payload)
         )
@@ -62,6 +69,8 @@ class ResourcesResource:
         self,
         payload: Mapping[str, Any],
         upload: UploadPath,
+        *,
+        content_type: str | None,
     ) -> CkanResourceInfo:
         data = dict(payload)
         if "upload" in data:
@@ -73,12 +82,20 @@ class ResourcesResource:
         filename = path.name.strip()
         if not filename:
             raise ValidationError("upload filename must be non-empty")
+        if not path.is_file():
+            raise ValidationError(f"upload path must be a file: {path}")
+        normalized_content_type = _optional_string(content_type, "content_type")
 
         with path.open("rb") as file:
+            upload_file: tuple[str, Any] | tuple[str, Any, str]
+            if normalized_content_type is None:
+                upload_file = (filename, file)
+            else:
+                upload_file = (filename, file, normalized_content_type)
             result = self.client.action.call(
                 "resource_create",
                 data,
-                files={"upload": (filename, file)},
+                files={"upload": upload_file},
             )
         return CkanResourceInfo.from_dict(result)
 
@@ -88,4 +105,13 @@ def _resource_id(resource: str | CkanResourceInfo) -> str:
     text = str(value).strip()
     if not text:
         raise ValidationError("resource id must be non-empty")
+    return text
+
+
+def _optional_string(value: str | None, field_name: str) -> str | None:
+    if value is None:
+        return None
+    text = value.strip()
+    if not text:
+        raise ValidationError(f"{field_name} must be non-empty")
     return text
