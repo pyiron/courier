@@ -60,7 +60,7 @@ class TestDataportalAssetInfo(unittest.TestCase):
         self.assertIsNone(asset.size)
 
     def test_invalid_size_is_rejected(self):
-        for value in (True, "large", -1):
+        for value in (True, "large", 128.5, -1):
             with (
                 self.subTest(value=value),
                 self.assertRaisesRegex(ValidationError, "asset size"),
