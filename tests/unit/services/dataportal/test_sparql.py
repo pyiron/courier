@@ -81,6 +81,7 @@ class TestSparqlEndpointDiscovery(unittest.TestCase):
         client = DataportalClient(session=cast(Any, FakeSession()))
         dataset = dataset_info(
             [
+                "invalid resource",
                 {"id": "res-1", "format": "ttl", "url": "https://example.test/data"},
                 {
                     "id": "res-2",
