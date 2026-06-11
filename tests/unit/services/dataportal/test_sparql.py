@@ -152,6 +152,13 @@ class TestSparqlEndpointDiscovery(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "multiple SPARQL"):
             client.sparql.endpoint(dataset)
 
+    def test_sparql_resource_without_url_is_rejected(self):
+        client = DataportalClient(session=cast(Any, FakeSession()))
+        dataset = dataset_info([{"id": "res-1", "format": "SPARQL"}])
+
+        with self.assertRaisesRegex(ValidationError, "does not include a URL"):
+            client.sparql.endpoint(dataset)
+
     def test_invalid_sparql_resource_url_is_rejected(self):
         client = DataportalClient(session=cast(Any, FakeSession()))
         dataset = dataset_info(
