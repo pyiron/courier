@@ -51,6 +51,16 @@ class TestRdfResource(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "unsupported RDF format"):
             client.rdf.dataset_url("pkg-1", format="csv")
 
+    def test_non_string_format_is_rejected(self):
+        client = DataportalClient(session=cast(Any, FakeSession()))
+
+        for format in (None, 1, []):
+            with (
+                self.subTest(format=format),
+                self.assertRaisesRegex(ValidationError, "RDF format must be a string"),
+            ):
+                client.rdf.dataset_url("pkg-1", format=cast(Any, format))
+
     def test_dataset_retrieves_text_from_generated_url(self):
         session = FakeSession()
         session.response = FakeResponse()

@@ -60,7 +60,9 @@ def _dataset_id(dataset: str | DataportalDatasetInfo) -> str:
     return text
 
 
-def _rdf_format(format: str) -> str:
+def _rdf_format(format: object) -> str:
+    if not isinstance(format, str):
+        raise ValidationError("RDF format must be a string")
     value = format.strip().lower()
     if value not in _RDF_FORMATS:
         supported = ", ".join(sorted(_RDF_FORMATS))
