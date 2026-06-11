@@ -128,6 +128,19 @@ class TestResourcesResource(unittest.TestCase):
         ):
             client.resources.create({"package_id": "pkg-1"}, upload="")
 
+    def test_create_with_upload_rejects_non_file_path(self):
+        client = CkanClient("ckan.test", session=cast(Any, FakeSession()))
+
+        with TemporaryDirectory() as directory:
+            for path in (Path(directory), Path(directory) / "missing.ttl"):
+                with (
+                    self.subTest(path=path),
+                    self.assertRaisesRegex(
+                        ValidationError, "upload path must be a file"
+                    ),
+                ):
+                    client.resources.create({"package_id": "pkg-1"}, upload=path)
+
     def test_create_with_upload_sets_multipart_content_type(self):
         session = FakeSession(
             [FakeResponse(json_value={"success": True, "result": resource_payload()})]

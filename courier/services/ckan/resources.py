@@ -82,6 +82,8 @@ class ResourcesResource:
         filename = path.name.strip()
         if not filename:
             raise ValidationError("upload filename must be non-empty")
+        if not path.is_file():
+            raise ValidationError(f"upload path must be a file: {path}")
         normalized_content_type = _optional_string(content_type, "content_type")
 
         with path.open("rb") as file:
