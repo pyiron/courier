@@ -67,6 +67,24 @@ class TestDataportalDatasetInfo(unittest.TestCase):
 
         self.assertFalse(dataset.private)
 
+    def test_supported_private_representations_are_parsed(self):
+        cases = [
+            (1, True),
+            (0, False),
+            (" true ", True),
+        ]
+
+        for value, expected in cases:
+            with self.subTest(value=value):
+                payload = package_payload()
+                payload["private"] = value
+
+                dataset = DataportalDatasetInfo.from_ckan(
+                    CkanPackageInfo.from_dict(payload)
+                )
+
+                self.assertIs(dataset.private, expected)
+
     def test_invalid_private_value_is_rejected(self):
         payload = package_payload()
         payload["private"] = "private"
