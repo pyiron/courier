@@ -41,9 +41,13 @@ class DataportalMetadata:
         if self.private is not None and not isinstance(self.private, bool):
             raise ValidationError("private must be a boolean when provided")
 
+        if not isinstance(self.groups, list):
+            raise ValidationError("groups must be a list")
         for group in self.groups:
             _ = _required_string(group, "group")
 
+        if not isinstance(self.extras, dict):
+            raise ValidationError("extras must be a dict")
         normalized_extra_keys: set[str] = set()
         for key, value in self.extras.items():
             normalized_key = _required_string(key, "extra key")

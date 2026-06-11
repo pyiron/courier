@@ -186,6 +186,24 @@ class TestDataportalMetadata(unittest.TestCase):
                 private=cast(Any, "false"),
             )
 
+    def test_groups_and_extras_require_expected_container_types(self):
+        cases = [
+            ({"groups": None}, "groups must be a list"),
+            ({"groups": "foo"}, "groups must be a list"),
+            ({"extras": None}, "extras must be a dict"),
+            ({"extras": []}, "extras must be a dict"),
+        ]
+
+        for kwargs, message in cases:
+            with (
+                self.subTest(kwargs=kwargs),
+                self.assertRaisesRegex(ValidationError, message),
+            ):
+                DataportalMetadata(
+                    metadata=publication_metadata(),
+                    **cast(Any, kwargs),
+                )
+
     def test_extra_values_must_be_strings(self):
         with self.assertRaisesRegex(ValidationError, "extra values must be strings"):
             DataportalMetadata(
