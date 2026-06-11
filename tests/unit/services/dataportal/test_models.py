@@ -86,11 +86,15 @@ class TestDataportalDatasetInfo(unittest.TestCase):
                 self.assertIs(dataset.private, expected)
 
     def test_invalid_private_value_is_rejected(self):
-        payload = package_payload()
-        payload["private"] = "private"
+        for value in ("private", 0.0, 1.0):
+            with (
+                self.subTest(value=value),
+                self.assertRaisesRegex(ValidationError, "private must be a boolean"),
+            ):
+                payload = package_payload()
+                payload["private"] = value
 
-        with self.assertRaisesRegex(ValidationError, "private must be a boolean"):
-            DataportalDatasetInfo.from_ckan(CkanPackageInfo.from_dict(payload))
+                DataportalDatasetInfo.from_ckan(CkanPackageInfo.from_dict(payload))
 
 
 class TestDataportalDatasetSearchResult(unittest.TestCase):

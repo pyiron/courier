@@ -72,7 +72,7 @@ def _optional_bool(value: object) -> bool | None:
         return None
     if isinstance(value, bool):
         return value
-    if value in (0, 1):
+    if type(value) is int and value in (0, 1):
         return bool(value)
     if isinstance(value, str):
         normalized = value.strip().lower()
