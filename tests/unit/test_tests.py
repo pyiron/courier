@@ -5,6 +5,10 @@ from unittest import mock
 
 import courier
 import courier.metadata as metadata_models
+import courier.services as services
+from courier.services.dataportal import DataportalClient
+from courier.services.ontodocker import OntodockerClient
+from courier.services.zenodo import ZenodoClient
 
 
 class TestVersion(unittest.TestCase):
@@ -32,6 +36,16 @@ class TestVersion(unittest.TestCase):
 
 
 class TestPublicApi(unittest.TestCase):
+    def test_service_clients_are_top_level_imports(self):
+        self.assertIs(courier.DataportalClient, DataportalClient)
+        self.assertIs(courier.OntodockerClient, OntodockerClient)
+        self.assertIs(courier.ZenodoClient, ZenodoClient)
+
+    def test_service_clients_are_services_imports(self):
+        self.assertIs(services.DataportalClient, DataportalClient)
+        self.assertIs(services.OntodockerClient, OntodockerClient)
+        self.assertIs(services.ZenodoClient, ZenodoClient)
+
     def test_publication_metadata_models_are_top_level_imports(self):
         self.assertIs(courier.Contributor, metadata_models.Contributor)
         self.assertIs(courier.Person, metadata_models.Person)

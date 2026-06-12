@@ -44,8 +44,8 @@ class TestDataportalClient(unittest.TestCase):
         self.assertEqual(client.api_token, "token")
         self.assertEqual(session.headers["Authorization"], "token")
 
-    def test_client_is_not_exported_from_top_level_package(self):
-        self.assertFalse(hasattr(courier, "DataportalClient"))
+    def test_is_exported_from_top_level_package(self):
+        self.assertIs(courier.DataportalClient, DataportalClient)
 
     def test_client_construction_does_not_accept_publication_metadata(self):
         metadata = PublicationMetadata(
