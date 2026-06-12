@@ -7,6 +7,8 @@ The main user-facing API is built around service clients:
 
 - `OntodockerClient` for Ontodocker-backed RDF datasets, endpoint discovery, and
   SPARQL queries.
+- `DataportalClient` for datasets, assets, DCAT RDF, and SPARQL workflows on the
+  [MaterialDigital Dataportal](https://dataportal.material-digital.de).
 - `ZenodoClient` for Zenodo depositions, files, metadata, license lookup, and
   publication workflows.
 
@@ -24,6 +26,7 @@ The public API is organized in two layers.
 Service clients implement domain workflows:
 
 - `OntodockerClient` exposes `endpoints`, `datasets`, and `sparql` resources.
+- `DataportalClient` exposes `datasets`, `assets`, `rdf`, and `sparql` resources.
 - `ZenodoClient` exposes `depositions`, `files`, and `licenses` resources.
 
 Protocol clients provide reusable transport behavior:
@@ -188,7 +191,113 @@ resources do not expose yet. If that endpoint becomes part of normal Ontodocker
 usage, add it as a method on an Ontodocker resource class instead of duplicating
 URL construction in notebooks or scripts.
 
-See `notebooks/OntodockerClient.ipynb` for a runnable demo.
+See the
+[OntodockerClient notebook](https://github.com/pyiron/courier/blob/main/notebooks/OntodockerClient.ipynb)
+for a runnable demo and more detailed usage.
+
+### DataportalClient
+
+`DataportalClient` supports publication and semantic-data workflows on the
+CKAN-backed [MaterialDigital Dataportal](https://dataportal.material-digital.de).
+It uses the Dataportal deployment by default, while still allowing another
+compatible address to be supplied explicitly.
+
+#### Architecture
+
+A `DataportalClient` exposes four resource objects:
+
+```python
+from courier.services.dataportal import DataportalClient
+
+client = DataportalClient(api_token="your-token")
+
+client.datasets
+client.assets
+client.rdf
+client.sparql
+```
+
+The client builds on courier's shared HTTP and CKAN transport infrastructure.
+The resource objects provide typed dataset and asset operations, DCAT RDF
+retrieval, and discovery and querying of dataset-associated SPARQL endpoints.
+
+#### Basic Usage
+
+Provide a Dataportal API token through the environment:
+
+```bash
+export DATAPORTAL_TOKEN="..."
+```
+
+Create a client:
+
+```python
+import os
+
+from courier.services.dataportal import DataportalClient
+
+client = DataportalClient(api_token=os.environ["DATAPORTAL_TOKEN"])
+```
+
+Service-independent publication fields are modeled with
+`PublicationMetadata`. Wrap them in `DataportalMetadata` to add CKAN and
+Dataportal-specific fields before creating a dataset:
+
+```python
+from courier import Person, PublicationMetadata
+from courier.services.dataportal import DataportalMetadata
+
+publication = PublicationMetadata(
+    title="courier Dataportal example",
+    description="Example dataset created with courier.",
+    creators=[Person(name="Example Author")],
+    keywords=["courier", "dataportal"],
+)
+metadata = DataportalMetadata(
+    metadata=publication,
+    name="courier-dataportal-example",
+    owner_org="organization-id",
+    private=True,
+)
+
+dataset = client.datasets.create(metadata)
+```
+
+Upload Turtle using a format recognized by the Dataportal's Fuseki integration:
+
+```python
+from pathlib import Path
+
+asset = client.assets.upload_rdf(
+    dataset,
+    Path("dataset.ttl"),
+    format="turtle",
+)
+```
+
+The Dataportal performs triplestore updates asynchronously. Once Fuseki indexing
+has completed and the generated SPARQL resource is available, query it through
+the dataset model:
+
+```python
+dataset = client.datasets.show(dataset)
+endpoint = client.sparql.endpoint(dataset)
+result = client.sparql.query_json(
+    endpoint,
+    "ASK WHERE { ?subject ?predicate ?object }",
+)
+```
+
+#### More Information
+
+Creating datasets and starting Fuseki updates require suitable permissions for
+the selected organization. Use disposable private datasets when validating
+write workflows against the live deployment, and clean them up afterwards.
+
+See the
+[DataportalClient notebook](https://github.com/pyiron/courier/blob/main/notebooks/DataportalClient.ipynb)
+for a complete live workflow covering organization discovery, metadata,
+datasets, RDF assets, Fuseki indexing, SPARQL querying, and cleanup.
 
 ### ZenodoClient
 
@@ -414,7 +523,9 @@ Zenodo API failures raise `ZenodoApiError` or a more specific subclass such as
 or `ZenodoNotFoundError`. Local metadata and input validation failures use
 `courier.exceptions.ValidationError`.
 
-See `notebooks/ZenodoClient.ipynb` for a sandbox demo.
+See the
+[ZenodoClient notebook](https://github.com/pyiron/courier/blob/main/notebooks/ZenodoClient.ipynb)
+for a sandbox demo and more detailed usage.
 
 ## Protocol Clients
 
@@ -504,6 +615,10 @@ Use `HttpClient` directly when:
 Once route construction, response parsing, or workflow logic starts repeating,
 move that behavior into a service-specific client under `courier/services/`.
 
+See the
+[HttpClient notebook](https://github.com/pyiron/courier/blob/main/notebooks/HttpClient.ipynb)
+for a runnable demonstration of the transport API.
+
 ## Developer Guide
 
 The repository is organized by responsibility:
@@ -513,6 +628,8 @@ The repository is organized by responsibility:
   session creation, URL normalization/composition, and response handling.
 - `courier/services/ontodocker/` contains Ontodocker routes, resources, models,
   and compatibility helpers.
+- `courier/services/dataportal/` contains Dataportal datasets, assets, metadata,
+  DCAT RDF, SPARQL, and CKAN-backed models.
 - `courier/services/zenodo/` contains Zenodo routes, resources, metadata
   authoring objects, response models, and Zenodo-specific errors.
 - `tests/unit/` contains focused behavior tests using fake sessions and
