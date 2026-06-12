@@ -207,7 +207,7 @@ compatible address to be supplied explicitly.
 A `DataportalClient` exposes four resource objects:
 
 ```python
-from courier.services.dataportal import DataportalClient
+from courier import DataportalClient
 
 client = DataportalClient(api_token="your-token")
 
@@ -234,7 +234,7 @@ Create a client:
 ```python
 import os
 
-from courier.services.dataportal import DataportalClient
+from courier import DataportalClient
 
 client = DataportalClient(api_token=os.environ["DATAPORTAL_TOKEN"])
 ```
