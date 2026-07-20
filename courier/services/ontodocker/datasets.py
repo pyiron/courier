@@ -128,7 +128,7 @@ class DatasetsResource:
         _ = path.write_text(content, encoding="utf-8")
         return path
 
-    def upload_turtlefile(self, name: str, turtlefile: str) -> str:
+    def upload_turtlefile(self, name: str, turtlefile: str | Path) -> str:
         """Upload a Turtle (.ttl) file into an existing dataset.
 
         Parameters
@@ -152,12 +152,12 @@ class DatasetsResource:
         PermissionError
             If `turtlefile` cannot be read.
         """
-        turtlefile = turtlefile.strip()
-        if not turtlefile:
+        if isinstance(turtlefile, str) and not turtlefile.strip():
             raise ValidationError("turtlefile must be a non-empty path")
+        path = Path(turtlefile)
         url = self._dataset_url(name)
 
-        with open(turtlefile, "rb") as f:
+        with path.open("rb") as f:
             return self.client.post_text(url, files={"file": f})
 
     def upload_graph(
