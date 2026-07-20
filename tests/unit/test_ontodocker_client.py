@@ -229,21 +229,31 @@ class TestDatasetsResource(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 _ = c.datasets.upload_turtlefile("ds", str(missing))
 
-    def test_upload_turtlefile_uses_post_with_file_field(self):
-        s = _FakeSession()
-        s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
-        c = OntodockerClient("https://example.org", session=s)
-
+    def test_upload_turtlefile_uses_post_with_file_field_for_str_and_path(self):
         with TemporaryDirectory() as tmp:
             turtlefile = Path(tmp) / "in.ttl"
             turtlefile.write_text("@prefix : <x> .", encoding="utf-8")
 
-            out = c.datasets.upload_turtlefile("ds", str(turtlefile))
+            cases = (
+                ("str", str(turtlefile)),
+                ("padded str", f" {turtlefile} "),
+                ("Path", turtlefile),
+            )
 
-        self.assertEqual(out, "ok")
-        self.assertEqual(s.calls[0]["method"], "POST")
-        self.assertEqual(s.calls[0]["url"], "https://example.org/api/v1/jena/ds")
-        self.assertIn("file", s.calls[0]["files"])
+            for label, value in cases:
+                s = _FakeSession()
+                s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
+                c = OntodockerClient("https://example.org", session=s)
+
+                with self.subTest(path_type=label):
+                    out = c.datasets.upload_turtlefile("ds", value)
+
+                    self.assertEqual(out, "ok")
+                    self.assertEqual(s.calls[0]["method"], "POST")
+                    self.assertEqual(
+                        s.calls[0]["url"], "https://example.org/api/v1/jena/ds"
+                    )
+                    self.assertIn("file", s.calls[0]["files"])
 
     def test_upload_graph_validates_name(self):
         s = _FakeSession()
