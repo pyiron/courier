@@ -234,12 +234,18 @@ class TestDatasetsResource(unittest.TestCase):
             turtlefile = Path(tmp) / "in.ttl"
             turtlefile.write_text("@prefix : <x> .", encoding="utf-8")
 
-            for value in (str(turtlefile), turtlefile):
+            cases = (
+                ("str", str(turtlefile)),
+                ("padded str", f" {turtlefile} "),
+                ("Path", turtlefile),
+            )
+
+            for label, value in cases:
                 s = _FakeSession()
                 s.response = _FakeResponse(text="ok", request=_FakeRequest("POST"))
                 c = OntodockerClient("https://example.org", session=s)
 
-                with self.subTest(type=type(value).__name__):
+                with self.subTest(path_type=label):
                     out = c.datasets.upload_turtlefile("ds", value)
 
                 self.assertEqual(out, "ok")
