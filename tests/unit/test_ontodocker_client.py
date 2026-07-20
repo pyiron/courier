@@ -248,12 +248,12 @@ class TestDatasetsResource(unittest.TestCase):
                 with self.subTest(path_type=label):
                     out = c.datasets.upload_turtlefile("ds", value)
 
-                self.assertEqual(out, "ok")
-                self.assertEqual(s.calls[0]["method"], "POST")
-                self.assertEqual(
-                    s.calls[0]["url"], "https://example.org/api/v1/jena/ds"
-                )
-                self.assertIn("file", s.calls[0]["files"])
+                    self.assertEqual(out, "ok")
+                    self.assertEqual(s.calls[0]["method"], "POST")
+                    self.assertEqual(
+                        s.calls[0]["url"], "https://example.org/api/v1/jena/ds"
+                    )
+                    self.assertIn("file", s.calls[0]["files"])
 
     def test_upload_graph_validates_name(self):
         s = _FakeSession()
