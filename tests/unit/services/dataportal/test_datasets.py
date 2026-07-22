@@ -100,6 +100,7 @@ class TestDatasetsResource(unittest.TestCase):
                         "owner_org": "materials-org",
                         "private": False,
                         "license_id": "CC-BY-4.0",
+                        "creator": [{"name": "Doe, Jane", "type": "Person"}],
                         "extras": [
                             {
                                 "key": "creators",

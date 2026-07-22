@@ -10,6 +10,7 @@ from courier.metadata import (
     RelatedIdentifier,
 )
 from courier.services.dataportal import DataportalMetadata
+from courier.services.dataportal.metadata import _person_name
 
 
 def publication_metadata(**overrides: Any) -> PublicationMetadata:
@@ -81,6 +82,18 @@ class TestDataportalMetadata(unittest.TestCase):
         self.assertFalse(payload["private"])
         self.assertEqual(payload["groups"], [{"name": "heat-treatment"}])
         self.assertEqual(payload["type"], "dataset")
+        self.assertEqual(
+            payload["creator"],
+            [
+                {
+                    "identifier": "0000-0000-0000-0000",
+                    "name": "Doe, Jane",
+                    "type": "Person",
+                }
+            ],
+        )
+        self.assertEqual(payload["issued"], "2026-06-08")
+        self.assertEqual(payload["language"], ["eng"])
 
         extras = extras_by_key(payload)
         self.assertEqual(extras["pmd_profile"], "dataset-v1")
@@ -142,9 +155,44 @@ class TestDataportalMetadata(unittest.TestCase):
         extras = extras_by_key(payload)
 
         self.assertEqual(payload["tags"], [])
+        self.assertEqual(
+            payload["creator"],
+            [
+                {
+                    "identifier": "0000-0000-0000-0000",
+                    "name": "Doe, Jane",
+                    "type": "Person",
+                }
+            ],
+        )
         self.assertNotIn("license_id", payload)
         self.assertNotIn("version", payload)
+        self.assertNotIn("issued", payload)
+        self.assertNotIn("language", payload)
         self.assertEqual(set(extras), {"creators"})
+
+    def test_schema_creator_accepts_explicit_person_name(self):
+        publication = publication_metadata(
+            creators=[Person(name="Steel Research Group")],
+        )
+
+        payload = DataportalMetadata(metadata=publication).to_payload()
+
+        self.assertEqual(
+            payload["creator"],
+            [
+                {
+                    "name": "Steel Research Group",
+                    "type": "Person",
+                }
+            ],
+        )
+
+    def test_person_name_rejects_invalid_person_state(self):
+        person = object.__new__(Person)
+
+        with self.assertRaisesRegex(ValidationError, "person requires"):
+            _ = _person_name(person)
 
     def test_generated_extra_collision_is_rejected(self):
         with self.assertRaisesRegex(ValidationError, "publication_date"):
