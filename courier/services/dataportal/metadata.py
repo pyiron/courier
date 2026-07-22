@@ -5,11 +5,16 @@ from __future__ import annotations
 import json
 import re
 import unicodedata
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any
 
 from courier.exceptions import ValidationError
 from courier.metadata import Contributor, Person, PublicationMetadata, RelatedIdentifier
+
+_CONTACT_FIELDS = frozenset({"uri", "name", "email", "identifier", "url"})
+_PUBLISHER_FIELDS = frozenset(_CONTACT_FIELDS | {"type"})
 
 
 @dataclass
@@ -23,6 +28,10 @@ class DataportalMetadata:
     groups: list[str] = field(default_factory=list)
     extras: dict[str, str] = field(default_factory=dict)
     dataset_type: str | None = None
+    publisher: Mapping[str, str] | None = None
+    contact: list[Mapping[str, str]] = field(default_factory=list)
+    modified: date | str | None = None
+    identifier: str | None = None
 
     def __post_init__(self) -> None:
         self.validate()
@@ -38,6 +47,10 @@ class DataportalMetadata:
             _ = _required_string(self.owner_org, "owner_org")
         if self.dataset_type is not None:
             _ = _required_string(self.dataset_type, "dataset_type")
+        if self.modified is not None:
+            _ = _date_string(self.modified, "modified")
+        if self.identifier is not None:
+            _ = _required_string(self.identifier, "identifier")
         if self.private is not None and not isinstance(self.private, bool):
             raise ValidationError("private must be a boolean when provided")
 
@@ -45,6 +58,23 @@ class DataportalMetadata:
             raise ValidationError("groups must be a list")
         for group in self.groups:
             _ = _required_string(group, "group")
+
+        if self.publisher is not None:
+            _ = _schema_mapping(
+                self.publisher,
+                "publisher",
+                allowed_fields=_PUBLISHER_FIELDS,
+                require_any=True,
+            )
+        if not isinstance(self.contact, list):
+            raise ValidationError("contact must be a list")
+        for contact in self.contact:
+            _ = _schema_mapping(
+                contact,
+                "contact",
+                allowed_fields=_CONTACT_FIELDS,
+                require_any=True,
+            )
 
         if not isinstance(self.extras, dict):
             raise ValidationError("extras must be a dict")
@@ -92,6 +122,28 @@ class DataportalMetadata:
             payload["issued"] = self.metadata.publication_date.isoformat()
         if self.metadata.language is not None:
             payload["language"] = [self.metadata.language]
+        if self.publisher is not None:
+            payload["publisher"] = [
+                _schema_mapping(
+                    self.publisher,
+                    "publisher",
+                    allowed_fields=_PUBLISHER_FIELDS,
+                    require_any=True,
+                )
+            ]
+        if self.contact:
+            payload["contact"] = [
+                _schema_mapping(
+                    item,
+                    "contact",
+                    allowed_fields=_CONTACT_FIELDS,
+                    require_any=True,
+                )
+                for item in self.contact
+            ]
+        if self.modified is not None:
+            payload["modified"] = _date_string(self.modified, "modified")
+        _add_if_present(payload, "identifier", self.identifier or self.metadata.doi)
 
         if self.groups:
             payload["groups"] = [
@@ -169,8 +221,22 @@ def _dataportal_agent(person: Person) -> dict[str, str]:
         "name": _person_name(person),
         "type": "Person",
     }
-    _add_if_present(data, "identifier", person.orcid)
+    _add_if_present(data, "identifier", _orcid_uri(person.orcid))
     return data
+
+
+def _orcid_uri(value: str | None) -> str | None:
+    """Return an ORCID as a stable HTTPS URI when present."""
+    if value is None:
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    prefix = "https://orcid.org/"
+    for scheme_prefix in ("https://orcid.org/", "http://orcid.org/"):
+        if text.startswith(scheme_prefix):
+            return prefix + text.removeprefix(scheme_prefix)
+    return prefix + text
 
 
 def _person_name(person: Person) -> str:
@@ -214,6 +280,45 @@ def _related_identifier_dict(
 
 def _json_value(value: object) -> str:
     return json.dumps(value, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
+
+
+def _schema_mapping(
+    value: Mapping[str, str],
+    field_name: str,
+    *,
+    allowed_fields: frozenset[str],
+    require_any: bool,
+) -> dict[str, str]:
+    """Validate and trim a Dataportal schema mapping."""
+    if not isinstance(value, Mapping):
+        raise ValidationError(f"{field_name} must be a mapping")
+
+    data: dict[str, str] = {}
+    for key, raw_value in value.items():
+        normalized_key = _required_string(key, f"{field_name} key")
+        if normalized_key not in allowed_fields:
+            raise ValidationError(
+                f"{field_name} contains unsupported field: {normalized_key}"
+            )
+        if not isinstance(raw_value, str):
+            raise ValidationError(f"{field_name} values must be strings")
+        _add_if_present(data, normalized_key, raw_value)
+
+    if require_any and not data:
+        raise ValidationError(f"{field_name} must contain at least one non-empty field")
+    return data
+
+
+def _date_string(value: date | str, field_name: str) -> str:
+    """Validate a date-like Dataportal field and return its ISO date string."""
+    if isinstance(value, date):
+        return value.isoformat()
+    text = _required_string(value, field_name)
+    try:
+        _ = date.fromisoformat(text)
+    except ValueError as exc:
+        raise ValidationError(f"{field_name} must be an ISO date") from exc
+    return text
 
 
 def _slugify(value: str) -> str:
