@@ -1,5 +1,6 @@
 import json
 import unittest
+from datetime import datetime
 from typing import Any, cast
 
 from courier.exceptions import ValidationError
@@ -226,6 +227,13 @@ class TestDataportalMetadata(unittest.TestCase):
         )
 
         self.assertEqual(metadata.to_payload()["modified"], "2026-06-08")
+
+    def test_modified_rejects_datetime_instances(self):
+        with self.assertRaisesRegex(ValidationError, "modified must be an ISO date"):
+            DataportalMetadata(
+                metadata=publication_metadata(),
+                modified=datetime(2026, 7, 22, 10, 30),
+            )
 
     def test_schema_creator_accepts_explicit_person_name(self):
         publication = publication_metadata(

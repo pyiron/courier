@@ -7,7 +7,7 @@ import re
 import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 from courier.exceptions import ValidationError
@@ -311,6 +311,8 @@ def _schema_mapping(
 
 def _date_string(value: date | str, field_name: str) -> str:
     """Validate a date-like Dataportal field and return its ISO date string."""
+    if isinstance(value, datetime):
+        raise ValidationError(f"{field_name} must be an ISO date")
     if isinstance(value, date):
         return value.isoformat()
     text = _required_string(value, field_name)
