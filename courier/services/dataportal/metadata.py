@@ -164,6 +164,7 @@ def _generated_extra_keys(metadata: PublicationMetadata) -> set[str]:
 
 
 def _dataportal_agent(person: Person) -> dict[str, str]:
+    """Serialize a person into the Dataportal agent field shape."""
     data = {
         "name": _person_name(person),
         "type": "Person",
@@ -173,6 +174,7 @@ def _dataportal_agent(person: Person) -> dict[str, str]:
 
 
 def _person_name(person: Person) -> str:
+    """Return the display name used for Dataportal person fields."""
     if person.name:
         return person.name
     if person.family_name and person.given_names:
