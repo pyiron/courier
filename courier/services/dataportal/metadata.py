@@ -85,6 +85,13 @@ class DataportalMetadata:
         _add_if_present(payload, "license_id", self.metadata.license)
         _add_if_present(payload, "version", self.metadata.version)
         _add_if_present(payload, "type", self.dataset_type)
+        payload["creator"] = [
+            _dataportal_agent(person) for person in self.metadata.creators
+        ]
+        if self.metadata.publication_date is not None:
+            payload["issued"] = self.metadata.publication_date.isoformat()
+        if self.metadata.language is not None:
+            payload["language"] = [self.metadata.language]
 
         if self.groups:
             payload["groups"] = [
@@ -154,6 +161,25 @@ def _generated_extra_keys(metadata: PublicationMetadata) -> set[str]:
     if metadata.related_identifiers:
         keys.add("related_identifiers")
     return keys
+
+
+def _dataportal_agent(person: Person) -> dict[str, str]:
+    data = {
+        "name": _person_name(person),
+        "type": "Person",
+    }
+    _add_if_present(data, "identifier", person.orcid)
+    return data
+
+
+def _person_name(person: Person) -> str:
+    if person.name:
+        return person.name
+    if person.family_name and person.given_names:
+        return f"{person.family_name}, {person.given_names}"
+    raise ValidationError(
+        "person requires either name or both family_name and given_names"
+    )
 
 
 def _person_dict(person: Person) -> dict[str, str]:
