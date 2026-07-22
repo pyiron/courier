@@ -1,5 +1,6 @@
 import json
 import unittest
+from datetime import datetime
 from typing import Any, cast
 
 from courier.exceptions import ValidationError
@@ -10,7 +11,7 @@ from courier.metadata import (
     RelatedIdentifier,
 )
 from courier.services.dataportal import DataportalMetadata
-from courier.services.dataportal.metadata import _person_name
+from courier.services.dataportal.metadata import _orcid_uri, _person_name
 
 
 def publication_metadata(**overrides: Any) -> PublicationMetadata:
@@ -86,7 +87,7 @@ class TestDataportalMetadata(unittest.TestCase):
             payload["creator"],
             [
                 {
-                    "identifier": "0000-0000-0000-0000",
+                    "identifier": "https://orcid.org/0000-0000-0000-0000",
                     "name": "Doe, Jane",
                     "type": "Person",
                 }
@@ -94,6 +95,7 @@ class TestDataportalMetadata(unittest.TestCase):
         )
         self.assertEqual(payload["issued"], "2026-06-08")
         self.assertEqual(payload["language"], ["eng"])
+        self.assertEqual(payload["identifier"], "10.1234/example")
 
         extras = extras_by_key(payload)
         self.assertEqual(extras["pmd_profile"], "dataset-v1")
@@ -159,7 +161,7 @@ class TestDataportalMetadata(unittest.TestCase):
             payload["creator"],
             [
                 {
-                    "identifier": "0000-0000-0000-0000",
+                    "identifier": "https://orcid.org/0000-0000-0000-0000",
                     "name": "Doe, Jane",
                     "type": "Person",
                 }
@@ -169,7 +171,69 @@ class TestDataportalMetadata(unittest.TestCase):
         self.assertNotIn("version", payload)
         self.assertNotIn("issued", payload)
         self.assertNotIn("language", payload)
+        self.assertNotIn("identifier", payload)
         self.assertEqual(set(extras), {"creators"})
+
+    def test_dataportal_specific_schema_fields_are_serialized(self):
+        metadata = DataportalMetadata(
+            metadata=publication_metadata(),
+            publisher={
+                "name": "MPI-SusMat",
+                "type": "Organization",
+                "identifier": "https://ror.org/03y34c780",
+                "url": "https://www.mpie.de/",
+            },
+            contact=[
+                {
+                    "name": "Data Steward",
+                    "email": "data@example.org",
+                    "identifier": "https://ror.org/03y34c780",
+                }
+            ],
+            modified="2026-07-22",
+            identifier="https://doi.org/10.1234/explicit",
+        )
+
+        payload = metadata.to_payload()
+
+        self.assertEqual(
+            payload["publisher"],
+            [
+                {
+                    "name": "MPI-SusMat",
+                    "type": "Organization",
+                    "identifier": "https://ror.org/03y34c780",
+                    "url": "https://www.mpie.de/",
+                }
+            ],
+        )
+        self.assertEqual(
+            payload["contact"],
+            [
+                {
+                    "name": "Data Steward",
+                    "email": "data@example.org",
+                    "identifier": "https://ror.org/03y34c780",
+                }
+            ],
+        )
+        self.assertEqual(payload["modified"], "2026-07-22")
+        self.assertEqual(payload["identifier"], "https://doi.org/10.1234/explicit")
+
+    def test_modified_accepts_date_instances(self):
+        metadata = DataportalMetadata(
+            metadata=publication_metadata(),
+            modified=publication_metadata().publication_date,
+        )
+
+        self.assertEqual(metadata.to_payload()["modified"], "2026-06-08")
+
+    def test_modified_rejects_datetime_instances(self):
+        with self.assertRaisesRegex(ValidationError, "modified must be an ISO date"):
+            DataportalMetadata(
+                metadata=publication_metadata(),
+                modified=datetime(2026, 7, 22, 10, 30),
+            )
 
     def test_schema_creator_accepts_explicit_person_name(self):
         publication = publication_metadata(
@@ -188,11 +252,39 @@ class TestDataportalMetadata(unittest.TestCase):
             ],
         )
 
+    def test_schema_creator_keeps_multiple_creators(self):
+        publication = publication_metadata(
+            creators=[
+                Person(name="Steel Research Group"),
+                Person(name="Doe, Jane", orcid="https://orcid.org/0000-0000-0000-0001"),
+            ],
+        )
+
+        payload = DataportalMetadata(metadata=publication).to_payload()
+
+        self.assertEqual(
+            payload["creator"],
+            [
+                {
+                    "name": "Steel Research Group",
+                    "type": "Person",
+                },
+                {
+                    "identifier": "https://orcid.org/0000-0000-0000-0001",
+                    "name": "Doe, Jane",
+                    "type": "Person",
+                },
+            ],
+        )
+
     def test_person_name_rejects_invalid_person_state(self):
         person = object.__new__(Person)
 
         with self.assertRaisesRegex(ValidationError, "person requires"):
             _ = _person_name(person)
+
+    def test_orcid_uri_omits_blank_values(self):
+        self.assertIsNone(_orcid_uri(" "))
 
     def test_generated_extra_collision_is_rejected(self):
         with self.assertRaisesRegex(ValidationError, "publication_date"):
@@ -216,7 +308,11 @@ class TestDataportalMetadata(unittest.TestCase):
             ({"name": " "}, "name"),
             ({"owner_org": " "}, "owner_org"),
             ({"dataset_type": " "}, "dataset_type"),
+            ({"identifier": " "}, "identifier"),
+            ({"modified": " "}, "modified"),
             ({"groups": [" "]}, "group"),
+            ({"publisher": {"name": " "}}, "publisher"),
+            ({"contact": [{"email": " "}]}, "contact"),
             ({"extras": {" ": "value"}}, "extra key"),
         ]
 
@@ -238,6 +334,8 @@ class TestDataportalMetadata(unittest.TestCase):
         cases = [
             ({"groups": None}, "groups must be a list"),
             ({"groups": "foo"}, "groups must be a list"),
+            ({"contact": None}, "contact must be a list"),
+            ({"contact": "foo"}, "contact must be a list"),
             ({"extras": None}, "extras must be a dict"),
             ({"extras": []}, "extras must be a dict"),
         ]
@@ -258,6 +356,26 @@ class TestDataportalMetadata(unittest.TestCase):
                 metadata=publication_metadata(),
                 extras=cast(Any, {"priority": 1}),
             )
+
+    def test_schema_mappings_reject_invalid_fields_and_values(self):
+        cases = [
+            ({"publisher": "publisher"}, "publisher must be a mapping"),
+            ({"publisher": {"unknown": "value"}}, "unsupported field"),
+            ({"publisher": {"name": 1}}, "publisher values must be strings"),
+            ({"contact": [{"type": "Person"}]}, "unsupported field"),
+            ({"contact": [{"name": 1}]}, "contact values must be strings"),
+            ({"modified": "2026/07/22"}, "modified must be an ISO date"),
+        ]
+
+        for kwargs, message in cases:
+            with (
+                self.subTest(kwargs=kwargs),
+                self.assertRaisesRegex(ValidationError, message),
+            ):
+                DataportalMetadata(
+                    metadata=publication_metadata(),
+                    **cast(Any, kwargs),
+                )
 
     def test_metadata_must_be_publication_metadata(self):
         with self.assertRaisesRegex(ValidationError, "PublicationMetadata"):

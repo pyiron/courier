@@ -29,6 +29,10 @@ class TestDataportalMetadataBoundary(unittest.TestCase):
                 "groups",
                 "extras",
                 "dataset_type",
+                "publisher",
+                "contact",
+                "modified",
+                "identifier",
             },
         )
 
