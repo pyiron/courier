@@ -1,16 +1,16 @@
 import unittest
 from typing import Any, cast
 
-import courier
-from courier.exceptions import InvalidAddressError
-from courier.services.zenodo import ZenodoClient
+import praeco
+from praeco.exceptions import InvalidAddressError
+from praeco.services.zenodo import ZenodoClient
 
 from ._helpers import FakeSession
 
 
 class TestZenodoClientInit(unittest.TestCase):
     def test_is_exported_from_top_level_package(self):
-        self.assertIs(courier.ZenodoClient, ZenodoClient)
+        self.assertIs(praeco.ZenodoClient, ZenodoClient)
 
     def test_default_address_is_production_zenodo(self):
         c = ZenodoClient(session=cast(Any, FakeSession()))

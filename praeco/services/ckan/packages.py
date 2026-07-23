@@ -6,11 +6,11 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from courier.exceptions import ValidationError
-from courier.services.ckan.models import CkanPackageInfo, CkanPackageSearchResult
+from praeco.exceptions import ValidationError
+from praeco.services.ckan.models import CkanPackageInfo, CkanPackageSearchResult
 
 if TYPE_CHECKING:
-    from courier.services.ckan.client import CkanClient
+    from praeco.services.ckan.client import CkanClient
 
 
 @dataclass

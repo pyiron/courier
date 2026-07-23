@@ -7,7 +7,7 @@ from typing import Any, NoReturn
 
 import requests
 
-from courier.services.ckan.exceptions import CkanApiError
+from praeco.services.ckan.exceptions import CkanApiError
 
 
 def read_ckan_result(resp: requests.Response) -> Any:

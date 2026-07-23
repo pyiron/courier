@@ -3,7 +3,7 @@ from typing import Any
 
 
 class CourierError(Exception):
-    """Base exception for courier."""
+    """Base exception for praeco."""
 
 
 class InvalidAddressError(CourierError, ValueError):

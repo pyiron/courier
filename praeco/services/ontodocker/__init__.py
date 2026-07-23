@@ -1,3 +1,3 @@
-from courier.services.ontodocker.client import OntodockerClient
+from praeco.services.ontodocker.client import OntodockerClient
 
 __all__ = ["OntodockerClient"]

@@ -9,11 +9,11 @@ from typing import TYPE_CHECKING
 
 import rdflib
 
-from courier.exceptions import ValidationError
-from courier.transport.url import join_url
+from praeco.exceptions import ValidationError
+from praeco.transport.url import join_url
 
 if TYPE_CHECKING:
-    from courier.services.ontodocker.client import OntodockerClient
+    from praeco.services.ontodocker.client import OntodockerClient
 
 
 @dataclass

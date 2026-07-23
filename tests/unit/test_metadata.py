@@ -3,7 +3,7 @@ from datetime import date
 
 from pydantic import ValidationError as PydanticValidationError
 
-from courier.metadata import (
+from praeco.metadata import (
     Contributor,
     Person,
     PublicationMetadata,

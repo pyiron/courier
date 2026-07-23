@@ -1,9 +1,9 @@
 import unittest
 from typing import Any, cast
 
-import courier
-from courier.metadata import Person, PublicationMetadata
-from courier.services.dataportal import DataportalClient
+import praeco
+from praeco.metadata import Person, PublicationMetadata
+from praeco.services.dataportal import DataportalClient
 
 from ._helpers import FakeSession
 
@@ -45,7 +45,7 @@ class TestDataportalClient(unittest.TestCase):
         self.assertEqual(session.headers["Authorization"], "token")
 
     def test_is_exported_from_top_level_package(self):
-        self.assertIs(courier.DataportalClient, DataportalClient)
+        self.assertIs(praeco.DataportalClient, DataportalClient)
 
     def test_client_construction_does_not_accept_publication_metadata(self):
         metadata = PublicationMetadata(

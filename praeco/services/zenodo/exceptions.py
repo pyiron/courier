@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from courier.exceptions import HttpError
-from courier.services.zenodo.models import ZenodoFieldError
+from praeco.exceptions import HttpError
+from praeco.services.zenodo.models import ZenodoFieldError
 
 
 @dataclass

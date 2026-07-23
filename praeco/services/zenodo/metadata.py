@@ -8,8 +8,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
-import courier.metadata as common_metadata
-from courier.exceptions import ValidationError
+import praeco.metadata as common_metadata
+from praeco.exceptions import ValidationError
 
 _UPLOAD_TYPES = {
     "dataset",
@@ -39,7 +39,7 @@ _COMMON_METADATA_FIELDS = {
 }
 _LEGACY_COMMON_METADATA_MESSAGE = (
     "Setting publication metadata fields directly on ZenodoMetadata is deprecated. "
-    "Use courier.PublicationMetadata and wrap it with a ZenodoMetadata adapter, "
+    "Use praeco.PublicationMetadata and wrap it with a ZenodoMetadata adapter, "
     "for example ZenodoMetadata.software(publication)."
 )
 

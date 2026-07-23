@@ -3,9 +3,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, cast
 
-from courier.exceptions import ValidationError
-from courier.services.ckan.models import CkanPackageInfo, CkanResourceInfo
-from courier.services.dataportal import (
+from praeco.exceptions import ValidationError
+from praeco.services.ckan.models import CkanPackageInfo, CkanResourceInfo
+from praeco.services.dataportal import (
     DataportalAssetInfo,
     DataportalClient,
     DataportalDatasetInfo,

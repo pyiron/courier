@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import requests
 
-from courier.services.ckan.client import CkanClient
-from courier.services.dataportal.assets import AssetsResource
-from courier.services.dataportal.datasets import DatasetsResource
-from courier.services.dataportal.rdf import RdfResource
-from courier.services.dataportal.sparql import SparqlResource
+from praeco.services.ckan.client import CkanClient
+from praeco.services.dataportal.assets import AssetsResource
+from praeco.services.dataportal.datasets import DatasetsResource
+from praeco.services.dataportal.rdf import RdfResource
+from praeco.services.dataportal.sparql import SparqlResource
 
 DEFAULT_DATAPORTAL_ADDRESS = "dataportal.material-digital.de"
 

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import requests
 
-from courier.http_client import HttpClient
-from courier.services.ontodocker.datasets import DatasetsResource
-from courier.services.ontodocker.endpoints import EndpointsResource
-from courier.services.ontodocker.sparql import SparqlResource
+from praeco.http_client import HttpClient
+from praeco.services.ontodocker.datasets import DatasetsResource
+from praeco.services.ontodocker.endpoints import EndpointsResource
+from praeco.services.ontodocker.sparql import SparqlResource
 
 
 class OntodockerClient(HttpClient):

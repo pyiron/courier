@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from courier.exceptions import ValidationError
-from courier.services.ckan.models import (
+from praeco.exceptions import ValidationError
+from praeco.services.ckan.models import (
     CkanPackageInfo,
     CkanPackageSearchResult,
     CkanResourceInfo,

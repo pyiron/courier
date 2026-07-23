@@ -1,6 +1,6 @@
 """CKAN-specific exceptions."""
 
-from courier.exceptions import HttpError
+from praeco.exceptions import HttpError
 
 
 class CkanApiError(HttpError):

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from courier.exceptions import ValidationError
-from courier.transport.url import join_url, quote_path_segment
+from praeco.exceptions import ValidationError
+from praeco.transport.url import join_url, quote_path_segment
 
 
 def depositions_url(base_url: str) -> str:

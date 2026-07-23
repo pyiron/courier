@@ -7,17 +7,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeAlias
 
-from courier.exceptions import ValidationError
-from courier.services.zenodo._response import read_zenodo_json, read_zenodo_text
-from courier.services.zenodo._urls import (
+from praeco.exceptions import ValidationError
+from praeco.services.zenodo._response import read_zenodo_json, read_zenodo_text
+from praeco.services.zenodo._urls import (
     bucket_file_url,
     deposition_file_url,
     deposition_files_url,
 )
-from courier.services.zenodo.models import DepositionInfo, UploadedFileInfo
+from praeco.services.zenodo.models import DepositionInfo, UploadedFileInfo
 
 if TYPE_CHECKING:
-    from courier.services.zenodo.client import ZenodoClient
+    from praeco.services.zenodo.client import ZenodoClient
 
 UploadPath: TypeAlias = str | Path
 UploadPaths: TypeAlias = UploadPath | Sequence[UploadPath]

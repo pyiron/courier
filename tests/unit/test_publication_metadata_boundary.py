@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-from courier import Person, PublicationMetadata
+from praeco import Person, PublicationMetadata
 
 
 def _generic_repository_payload(metadata: PublicationMetadata) -> dict[str, Any]:
@@ -55,7 +55,7 @@ class TestPublicationMetadataBoundary(unittest.TestCase):
         )
 
     def test_common_metadata_module_has_no_service_imports(self):
-        tree = ast.parse(Path("courier/metadata.py").read_text(encoding="utf-8"))
+        tree = ast.parse(Path("praeco/metadata.py").read_text(encoding="utf-8"))
 
         imported_modules = {
             module_name
@@ -64,7 +64,7 @@ class TestPublicationMetadataBoundary(unittest.TestCase):
         }
 
         self.assertFalse(
-            any(module.startswith("courier.services") for module in imported_modules),
+            any(module.startswith("praeco.services") for module in imported_modules),
             imported_modules,
         )
 
@@ -75,8 +75,8 @@ def _imported_modules(node: ast.AST) -> tuple[str, ...]:
     if isinstance(node, ast.ImportFrom):
         if node.level:
             if node.module:
-                return (f"courier.{node.module}",)
-            return tuple(f"courier.{alias.name}" for alias in node.names)
+                return (f"praeco.{node.module}",)
+            return tuple(f"praeco.{alias.name}" for alias in node.names)
         if node.module:
             return (node.module,)
     return ()

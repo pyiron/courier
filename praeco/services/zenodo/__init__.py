@@ -1,14 +1,14 @@
 """Zenodo service client and metadata helpers."""
 
-from courier.services.zenodo.client import ZenodoClient
-from courier.services.zenodo.exceptions import (
+from praeco.services.zenodo.client import ZenodoClient
+from praeco.services.zenodo.exceptions import (
     ZenodoApiError,
     ZenodoAuthenticationError,
     ZenodoNotFoundError,
     ZenodoPermissionError,
     ZenodoValidationError,
 )
-from courier.services.zenodo.metadata import (
+from praeco.services.zenodo.metadata import (
     CommunityRef,
     Contributor,
     Creator,

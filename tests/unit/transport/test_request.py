@@ -2,8 +2,8 @@ import unittest
 
 import requests
 
-from courier.exceptions import HttpError
-from courier.transport.request import _raise_for_status_with_body, read_json
+from praeco.exceptions import HttpError
+from praeco.transport.request import _raise_for_status_with_body, read_json
 
 
 class _FakeRequest:

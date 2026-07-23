@@ -2,9 +2,9 @@ import unittest
 import warnings
 from datetime import date
 
-import courier.metadata as common_metadata
-from courier.exceptions import ValidationError
-from courier.services.zenodo import (
+import praeco.metadata as common_metadata
+from praeco.exceptions import ValidationError
+from praeco.services.zenodo import (
     CommunityRef,
     Contributor,
     Creator,
@@ -12,7 +12,7 @@ from courier.services.zenodo import (
     RelatedIdentifier,
     ZenodoMetadata,
 )
-from courier.services.zenodo.metadata import _add_if_present, _person_api_name
+from praeco.services.zenodo.metadata import _add_if_present, _person_api_name
 
 _LEGACY_METADATA_WARNING = (
     "Setting publication metadata fields directly on ZenodoMetadata is deprecated.*"

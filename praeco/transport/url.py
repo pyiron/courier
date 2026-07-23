@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from urllib.parse import quote, urlsplit, urlunsplit
 
-from courier.exceptions import InvalidAddressError, ValidationError
+from praeco.exceptions import InvalidAddressError, ValidationError
 
 
 def normalize_base_url(

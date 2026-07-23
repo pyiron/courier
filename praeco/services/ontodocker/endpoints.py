@@ -5,15 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from courier.services.ontodocker._compat import (
+from praeco.services.ontodocker._compat import (
     extract_dataset_names,
     parse_endpoints_response,
 )
-from courier.services.ontodocker.models import EndpointInfo
-from courier.transport.url import join_url
+from praeco.services.ontodocker.models import EndpointInfo
+from praeco.transport.url import join_url
 
 if TYPE_CHECKING:
-    from courier.services.ontodocker.client import OntodockerClient
+    from praeco.services.ontodocker.client import OntodockerClient
 
 
 @dataclass

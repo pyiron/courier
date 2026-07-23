@@ -1,10 +1,10 @@
 import unittest
 from typing import Any, cast
 
-from courier.exceptions import ValidationError
-from courier.metadata import Person, PublicationMetadata
-from courier.services.ckan.models import CkanPackageInfo, CkanPackageSearchResult
-from courier.services.dataportal import (
+from praeco.exceptions import ValidationError
+from praeco.metadata import Person, PublicationMetadata
+from praeco.services.ckan.models import CkanPackageInfo, CkanPackageSearchResult
+from praeco.services.dataportal import (
     DataportalClient,
     DataportalDatasetInfo,
     DataportalMetadata,

@@ -1,9 +1,9 @@
 import unittest
 from typing import Any
 
-from courier.exceptions import ValidationError
-from courier.services.ckan.models import CkanResourceInfo
-from courier.services.dataportal.models import DataportalAssetInfo
+from praeco.exceptions import ValidationError
+from praeco.services.ckan.models import CkanResourceInfo
+from praeco.services.dataportal.models import DataportalAssetInfo
 
 
 def resource_payload(**overrides: Any) -> dict[str, Any]:

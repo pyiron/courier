@@ -2,7 +2,7 @@ import unittest
 
 import requests
 
-from courier.transport import create_session
+from praeco.transport import create_session
 
 
 class TestCreateSession(unittest.TestCase):

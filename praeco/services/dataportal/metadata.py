@@ -10,8 +10,8 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Any
 
-from courier.exceptions import ValidationError
-from courier.metadata import Contributor, Person, PublicationMetadata, RelatedIdentifier
+from praeco.exceptions import ValidationError
+from praeco.metadata import Contributor, Person, PublicationMetadata, RelatedIdentifier
 
 _CONTACT_FIELDS = frozenset({"uri", "name", "email", "identifier", "url"})
 _PUBLISHER_FIELDS = frozenset(_CONTACT_FIELDS | {"type"})

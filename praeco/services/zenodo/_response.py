@@ -6,14 +6,14 @@ from typing import Any, NoReturn
 
 import requests
 
-from courier.services.zenodo.exceptions import (
+from praeco.services.zenodo.exceptions import (
     ZenodoApiError,
     ZenodoAuthenticationError,
     ZenodoNotFoundError,
     ZenodoPermissionError,
     ZenodoValidationError,
 )
-from courier.services.zenodo.models import ZenodoFieldError
+from praeco.services.zenodo.models import ZenodoFieldError
 
 
 def read_zenodo_json(resp: requests.Response) -> Any:

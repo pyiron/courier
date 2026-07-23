@@ -1,6 +1,6 @@
 import unittest
 
-from courier.transport.auth import bearer_headers
+from praeco.transport.auth import bearer_headers
 
 
 class TestBearerHeaders(unittest.TestCase):

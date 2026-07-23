@@ -4,7 +4,7 @@ from typing import Any
 
 import requests
 
-from courier.exceptions import HttpError
+from praeco.exceptions import HttpError
 
 
 def _raise_for_status_with_body(resp: requests.Response) -> None:

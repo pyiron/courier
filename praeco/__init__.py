@@ -7,11 +7,11 @@ except importlib.metadata.PackageNotFoundError:
     # Repository clones will register an unknown version
     __version__ = "0.0.0+unknown"
 
-from courier.http_client import HttpClient
-from courier.metadata import Contributor, Person, PublicationMetadata, RelatedIdentifier
-from courier.services.dataportal import DataportalClient
-from courier.services.ontodocker import OntodockerClient
-from courier.services.zenodo import ZenodoClient
+from praeco.http_client import HttpClient
+from praeco.metadata import Contributor, Person, PublicationMetadata, RelatedIdentifier
+from praeco.services.dataportal import DataportalClient
+from praeco.services.ontodocker import OntodockerClient
+from praeco.services.zenodo import ZenodoClient
 
 __all__ = [
     "Contributor",

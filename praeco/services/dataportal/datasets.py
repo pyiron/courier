@@ -6,16 +6,16 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, TypeAlias
 
-from courier.exceptions import ValidationError
-from courier.metadata import PublicationMetadata
-from courier.services.dataportal.metadata import DataportalMetadata
-from courier.services.dataportal.models import (
+from praeco.exceptions import ValidationError
+from praeco.metadata import PublicationMetadata
+from praeco.services.dataportal.metadata import DataportalMetadata
+from praeco.services.dataportal.models import (
     DataportalDatasetInfo,
     DataportalDatasetSearchResult,
 )
 
 if TYPE_CHECKING:
-    from courier.services.dataportal.client import DataportalClient
+    from praeco.services.dataportal.client import DataportalClient
 
 DatasetMetadata: TypeAlias = DataportalMetadata | Mapping[str, Any]
 

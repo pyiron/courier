@@ -8,12 +8,12 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
-from courier.exceptions import ValidationError
-from courier.services.ontodocker._compat import make_dataframe
-from courier.transport.url import join_url
+from praeco.exceptions import ValidationError
+from praeco.services.ontodocker._compat import make_dataframe
+from praeco.transport.url import join_url
 
 if TYPE_CHECKING:
-    from courier.services.ontodocker.client import OntodockerClient
+    from praeco.services.ontodocker.client import OntodockerClient
 
 
 @dataclass

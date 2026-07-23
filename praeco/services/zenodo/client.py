@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import requests
 
-from courier.http_client import HttpClient
-from courier.services.zenodo.depositions import DepositionsResource
-from courier.services.zenodo.files import FilesResource
-from courier.services.zenodo.licenses import LicensesResource
-from courier.transport.url import normalize_base_url
+from praeco.http_client import HttpClient
+from praeco.services.zenodo.depositions import DepositionsResource
+from praeco.services.zenodo.files import FilesResource
+from praeco.services.zenodo.licenses import LicensesResource
+from praeco.transport.url import normalize_base_url
 
 
 class ZenodoClient(HttpClient):

@@ -7,11 +7,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from courier.exceptions import ValidationError
-from courier.services.ckan.models import CkanResourceInfo
+from praeco.exceptions import ValidationError
+from praeco.services.ckan.models import CkanResourceInfo
 
 if TYPE_CHECKING:
-    from courier.services.ckan.client import CkanClient
+    from praeco.services.ckan.client import CkanClient
 
 UploadPath = str | Path
 

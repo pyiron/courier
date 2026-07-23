@@ -2,12 +2,12 @@ import unittest
 import warnings
 from typing import Any, cast
 
-from courier.exceptions import ValidationError
-from courier.metadata import Person, PublicationMetadata
-from courier.services.zenodo import ZenodoClient
-from courier.services.zenodo._urls import deposition_action_url
-from courier.services.zenodo.metadata import Creator, ZenodoMetadata
-from courier.services.zenodo.models import DepositionInfo
+from praeco.exceptions import ValidationError
+from praeco.metadata import Person, PublicationMetadata
+from praeco.services.zenodo import ZenodoClient
+from praeco.services.zenodo._urls import deposition_action_url
+from praeco.services.zenodo.metadata import Creator, ZenodoMetadata
+from praeco.services.zenodo.models import DepositionInfo
 
 from ._helpers import FakeResponse, FakeSession, deposition_payload
 

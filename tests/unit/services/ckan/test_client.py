@@ -1,7 +1,7 @@
 import unittest
 from typing import Any, cast
 
-from courier.services.ckan import CkanClient
+from praeco.services.ckan import CkanClient
 
 from ._helpers import FakeResponse, FakeSession
 

@@ -17,7 +17,7 @@ import shutil
 import subprocess
 from sphinx.ext.apidoc import main
 
-import courier
+import praeco
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -74,7 +74,7 @@ copyright = (
 # built documents.
 #
 # The short X.Y version.
-version_full = courier.__version__
+version_full = praeco.__version__
 version = ".".join(version_full.split(".")[:2])
 # The full version, including alpha/beta/rc tags.
 release = version_full
@@ -247,7 +247,7 @@ latex_elements = {
 latex_documents = [
     (
         "index",
-        "courier.tex",
+        "praeco.tex",
         "courier Documentation",
         "Max-Planck-Institut für Nachhaltige Materialien GmbH - Computational Materials Design (CM) Department",
         "manual",
@@ -324,7 +324,7 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
 
-main(["-e", "-o", "apidoc", "../courier", "--force"])
+main(["-e", "-o", "apidoc", "../praeco", "--force"])
 
 curdir = os.path.dirname(os.path.abspath(__file__))
 if os.path.exists(os.path.join(curdir, "source/notebooks")):

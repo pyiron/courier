@@ -5,12 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from courier.exceptions import ValidationError
-from courier.services.dataportal.models import DataportalDatasetInfo
-from courier.transport.url import join_url, quote_path_segment
+from praeco.exceptions import ValidationError
+from praeco.services.dataportal.models import DataportalDatasetInfo
+from praeco.transport.url import join_url, quote_path_segment
 
 if TYPE_CHECKING:
-    from courier.services.dataportal.client import DataportalClient
+    from praeco.services.dataportal.client import DataportalClient
 
 _RDF_FORMATS = {"jsonld", "n3", "rdf", "ttl", "xml"}
 

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import requests
 
-from courier.http_client import HttpClient
-from courier.services.ckan.actions import ActionsResource
-from courier.services.ckan.packages import PackagesResource
-from courier.services.ckan.resources import ResourcesResource
+from praeco.http_client import HttpClient
+from praeco.services.ckan.actions import ActionsResource
+from praeco.services.ckan.packages import PackagesResource
+from praeco.services.ckan.resources import ResourcesResource
 
 
 class CkanClient(HttpClient):

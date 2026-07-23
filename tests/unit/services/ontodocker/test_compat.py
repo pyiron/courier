@@ -3,7 +3,7 @@ import unittest
 import pandas as pd
 import pandas.testing as pdt
 
-from courier.services.ontodocker import _compat
+from praeco.services.ontodocker import _compat
 
 
 class TestRectifyEndpoints(unittest.TestCase):

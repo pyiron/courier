@@ -11,15 +11,15 @@ from urllib.parse import urlsplit
 import pandas as pd
 import requests
 
-from courier.exceptions import ValidationError
-from courier.services.dataportal.models import (
+from praeco.exceptions import ValidationError
+from praeco.services.dataportal.models import (
     DataportalAssetInfo,
     DataportalDatasetInfo,
 )
-from courier.transport.request import read_text
+from praeco.transport.request import read_text
 
 if TYPE_CHECKING:
-    from courier.services.dataportal.client import DataportalClient
+    from praeco.services.dataportal.client import DataportalClient
 
 SparqlTarget: TypeAlias = str | DataportalDatasetInfo | DataportalAssetInfo
 

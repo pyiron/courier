@@ -1,4 +1,4 @@
-"""Public HTTP(S) client for courier.
+"""Public HTTP(S) client for praeco.
 
 `HttpClient` is a supported public API. It can be used directly when callers need
 low-level control over HTTP requests, and it also serves as a base for
@@ -28,10 +28,10 @@ from typing import Any
 
 import requests
 
-from courier.transport.auth import bearer_headers
-from courier.transport.request import read_json, read_text
-from courier.transport.session import create_session
-from courier.transport.url import normalize_base_url
+from praeco.transport.auth import bearer_headers
+from praeco.transport.request import read_json, read_text
+from praeco.transport.session import create_session
+from praeco.transport.url import normalize_base_url
 
 
 class HttpClient:

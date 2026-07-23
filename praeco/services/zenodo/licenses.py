@@ -5,13 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from courier.exceptions import ValidationError
-from courier.services.zenodo._response import read_zenodo_json
-from courier.services.zenodo._urls import license_url, licenses_url
-from courier.services.zenodo.models import LicenseInfo
+from praeco.exceptions import ValidationError
+from praeco.services.zenodo._response import read_zenodo_json
+from praeco.services.zenodo._urls import license_url, licenses_url
+from praeco.services.zenodo.models import LicenseInfo
 
 if TYPE_CHECKING:
-    from courier.services.zenodo.client import ZenodoClient
+    from praeco.services.zenodo.client import ZenodoClient
 
 
 @dataclass

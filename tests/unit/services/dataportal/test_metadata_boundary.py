@@ -2,9 +2,9 @@ import unittest
 from dataclasses import fields
 from typing import Any, cast
 
-import courier
-from courier.metadata import Person, PublicationMetadata
-from courier.services.dataportal import DataportalMetadata
+import praeco
+from praeco.metadata import Person, PublicationMetadata
+from praeco.services.dataportal import DataportalMetadata
 
 
 def publication_metadata() -> PublicationMetadata:
@@ -72,7 +72,7 @@ class TestDataportalMetadataBoundary(unittest.TestCase):
         self.assertEqual(payload["license_id"], publication.license)
 
     def test_adapter_is_not_exported_from_top_level_package(self):
-        self.assertFalse(hasattr(courier, "DataportalMetadata"))
+        self.assertFalse(hasattr(praeco, "DataportalMetadata"))
 
 
 if __name__ == "__main__":

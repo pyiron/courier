@@ -1,7 +1,7 @@
 import unittest
 from dataclasses import fields
 
-from courier.exceptions import (
+from praeco.exceptions import (
     CourierError,
     HttpError,
     InvalidAddressError,

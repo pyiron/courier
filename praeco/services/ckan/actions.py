@@ -6,11 +6,11 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from courier.services.ckan.response import read_ckan_result
-from courier.transport.url import join_url, quote_path_segment
+from praeco.services.ckan.response import read_ckan_result
+from praeco.transport.url import join_url, quote_path_segment
 
 if TYPE_CHECKING:
-    from courier.services.ckan.client import CkanClient
+    from praeco.services.ckan.client import CkanClient
 
 
 def action_url(base_url: str, action: str) -> str:
