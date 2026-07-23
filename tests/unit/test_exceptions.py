@@ -2,21 +2,21 @@ import unittest
 from dataclasses import fields
 
 from praeco.exceptions import (
-    CourierError,
     HttpError,
     InvalidAddressError,
+    PraecoError,
     ValidationError,
 )
 
 
 class TestExceptionHierarchy(unittest.TestCase):
     def test_inheritance(self):
-        self.assertTrue(issubclass(CourierError, Exception))
-        self.assertTrue(issubclass(InvalidAddressError, CourierError))
+        self.assertTrue(issubclass(PraecoError, Exception))
+        self.assertTrue(issubclass(InvalidAddressError, PraecoError))
         self.assertTrue(issubclass(InvalidAddressError, ValueError))
-        self.assertTrue(issubclass(ValidationError, CourierError))
+        self.assertTrue(issubclass(ValidationError, PraecoError))
         self.assertTrue(issubclass(ValidationError, ValueError))
-        self.assertTrue(issubclass(HttpError, CourierError))
+        self.assertTrue(issubclass(HttpError, PraecoError))
 
 
 class TestHttpError(unittest.TestCase):

@@ -1,4 +1,4 @@
-# create requests.Session used for http request done by courier
+# create requests.Session used for HTTP requests done by praeco
 
 import requests
 

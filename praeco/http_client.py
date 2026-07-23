@@ -2,7 +2,7 @@
 
 `HttpClient` is a supported public API. It can be used directly when callers need
 low-level control over HTTP requests, and it also serves as a base for
-service-specific courier clients. It centralizes a small set of shared concerns:
+service-specific praeco clients. It centralizes a small set of shared concerns:
 
 - normalization of the user-provided server address into a base URL
 - creation/configuration of a `requests.Session`

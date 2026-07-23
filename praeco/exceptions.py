@@ -2,20 +2,20 @@ from dataclasses import dataclass
 from typing import Any
 
 
-class CourierError(Exception):
+class PraecoError(Exception):
     """Base exception for praeco."""
 
 
-class InvalidAddressError(CourierError, ValueError):
+class InvalidAddressError(PraecoError, ValueError):
     """Raised when a provided server address cannot be normalized."""
 
 
-class ValidationError(CourierError, ValueError):
+class ValidationError(PraecoError, ValueError):
     """Raised when user input is invalid (e.g. empty dataset name)."""
 
 
 @dataclass
-class HttpError(CourierError):
+class HttpError(PraecoError):
     """Raised when an HTTP request fails."""
 
     method: str
