@@ -6,8 +6,8 @@ requires = [
 build-backend = "hatchling.build"
 
 [project]
-name = "courier"
-description = "courier - Interfaces for publishing workflow recipies, instances and related assets"
+name = "praeco"
+description = "praeco - Interfaces for publishing workflow recipies, instances and related assets"
 readme = "docs/README.md"
 keywords = [ "pyiron",]
 requires-python = ">=3.11, <3.14"
@@ -38,30 +38,30 @@ file = "LICENSE"
 
 [project.urls]
 Homepage = "https://pyiron.org/"
-Documentation = "https://courier.readthedocs.io"
-Repository = "https://github.com/pyiron/courier"
+Documentation = "https://praeco.readthedocs.io"
+Repository = "https://github.com/pyiron/praeco"
 
 [tool.hatch.build]
 include = [
-    "courier"
+    "praeco"
 ]
 
 [tool.hatch.build.hooks.vcs]
-version-file = "courier/_version.py"
+version-file = "praeco/_version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "courier"
+    "praeco"
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = [
-    "courier"
+    "praeco"
 ]
 
 [tool.hatch.version]
 source = "vcs"
-path = "courier/_version.py"
+path = "praeco/_version.py"
 
 [tool.ruff]
 exclude = ["docs", "notebooks"]
