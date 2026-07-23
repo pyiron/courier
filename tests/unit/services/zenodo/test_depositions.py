@@ -18,7 +18,7 @@ _LEGACY_METADATA_WARNING = (
 
 def _publication_metadata() -> PublicationMetadata:
     return PublicationMetadata(
-        title="courier",
+        title="praeco",
         description="Python client.",
         publication_date="2026-04-21",
         creators=[Person(name="Doe, Jane")],
@@ -46,12 +46,12 @@ class TestDepositionsResource(unittest.TestCase):
         session = FakeSession([FakeResponse(json_value=[deposition_payload()])])
         c = ZenodoClient(session=cast(Any, session))
 
-        depositions = c.depositions.list(q="courier", page=2, size=5)
+        depositions = c.depositions.list(q="praeco", page=2, size=5)
 
         self.assertEqual(depositions[0].id, 42)
         self.assertEqual(session.calls[0]["method"], "GET")
         self.assertEqual(
-            session.calls[0]["params"], {"q": "courier", "page": 2, "size": 5}
+            session.calls[0]["params"], {"q": "praeco", "page": 2, "size": 5}
         )
 
     def test_list_without_filters_uses_no_query_params(self):
@@ -113,7 +113,7 @@ class TestDepositionsResource(unittest.TestCase):
 
     def test_create_serializes_metadata_model(self):
         metadata = ZenodoMetadata.software()
-        metadata.title = "courier"
+        metadata.title = "praeco"
         metadata.publication_date = "2026-04-21"
         metadata.description = "Python client."
         metadata.license = "Apache-2.0"
@@ -141,7 +141,7 @@ class TestDepositionsResource(unittest.TestCase):
                 "metadata": {
                     "upload_type": "software",
                     "publication_date": "2026-04-21",
-                    "title": "courier",
+                    "title": "praeco",
                     "creators": [{"name": "Doe, Jane"}],
                     "description": "Python client.",
                     "access_right": "open",
@@ -205,7 +205,7 @@ class TestDepositionsResource(unittest.TestCase):
         self.assertEqual(session.calls[0]["method"], "PUT")
         self.assertEqual(
             session.calls[0]["json"]["metadata"]["title"],
-            "courier",
+            "praeco",
         )
         self.assertEqual(
             session.calls[0]["json"]["metadata"]["upload_type"],

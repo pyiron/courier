@@ -14,7 +14,7 @@ from praeco.metadata import (
 class TestPublicationMetadata(unittest.TestCase):
     def test_publication_metadata_accepts_reusable_fields(self):
         metadata = PublicationMetadata(
-            title=" courier ",
+            title=" praeco ",
             description=" Python client. ",
             publication_date="2026-04-21",
             creators=[Person(family_name=" Doe ", given_names=" Jane ")],
@@ -38,7 +38,7 @@ class TestPublicationMetadata(unittest.TestCase):
             ],
         )
 
-        self.assertEqual(metadata.title, "courier")
+        self.assertEqual(metadata.title, "praeco")
         self.assertEqual(metadata.description, "Python client.")
         self.assertEqual(metadata.publication_date, date(2026, 4, 21))
         self.assertEqual(metadata.creators[0].family_name, "Doe")
