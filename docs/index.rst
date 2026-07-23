@@ -1,4 +1,4 @@
-.. courier documentation master file
+.. praeco documentation master file
 
 .. _index:
 

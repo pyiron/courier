@@ -63,7 +63,7 @@ source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 master_doc = "index"
 
 # General information about the project.
-project = "courier"
+project = "praeco"
 copyright = (
     "2024, Max-Planck-Institut für Nachhaltige Materialien GmbH - Computational Materials Design (CM) Department "
     "All rights reserved"
@@ -248,7 +248,7 @@ latex_documents = [
     (
         "index",
         "praeco.tex",
-        "courier Documentation",
+        "praeco Documentation",
         "Max-Planck-Institut für Nachhaltige Materialien GmbH - Computational Materials Design (CM) Department",
         "manual",
     ),
@@ -282,8 +282,8 @@ latex_documents = [
 man_pages = [
     (
         "index",
-        "courier",
-        "courier Documentation",
+        "praeco",
+        "praeco Documentation",
         [
             "Max-Planck-Institut für Nachhaltige Materialien GmbH - Computational Materials Design (CM) Department"
         ],
@@ -303,10 +303,10 @@ man_pages = [
 texinfo_documents = [
     (
         "index",
-        "courier",
-        "courier Documentation",
+        "praeco",
+        "praeco Documentation",
         "Max-Planck-Institut für Nachhaltige Materialien GmbH - Computational Materials Design (CM) Department",
-        "courier",
+        "praeco",
         "One line description of project.",
         "Miscellaneous",
     ),
