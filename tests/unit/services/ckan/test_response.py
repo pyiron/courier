@@ -2,8 +2,8 @@ import json
 import unittest
 from typing import Any, cast
 
-from courier.services.ckan.exceptions import CkanApiError
-from courier.services.ckan.response import read_ckan_result
+from praeco.services.ckan.exceptions import CkanApiError
+from praeco.services.ckan.response import read_ckan_result
 
 from ._helpers import FakeRequest, FakeResponse
 

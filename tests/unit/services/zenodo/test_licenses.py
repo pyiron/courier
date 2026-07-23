@@ -1,9 +1,9 @@
 import unittest
 from typing import Any, cast
 
-from courier.exceptions import ValidationError
-from courier.services.zenodo import ZenodoClient
-from courier.services.zenodo.models import LicenseInfo
+from praeco.exceptions import ValidationError
+from praeco.services.zenodo import ZenodoClient
+from praeco.services.zenodo.models import LicenseInfo
 
 from ._helpers import FakeResponse, FakeSession
 

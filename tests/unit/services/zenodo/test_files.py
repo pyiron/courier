@@ -3,10 +3,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, cast
 
-from courier.exceptions import ValidationError
-from courier.services.zenodo import ZenodoClient
-from courier.services.zenodo._urls import bucket_file_url
-from courier.services.zenodo.models import DepositionInfo
+from praeco.exceptions import ValidationError
+from praeco.services.zenodo import ZenodoClient
+from praeco.services.zenodo._urls import bucket_file_url
+from praeco.services.zenodo.models import DepositionInfo
 
 from ._helpers import FakeResponse, FakeSession, deposition_payload
 

@@ -1,6 +1,6 @@
-# courier
+# praeco
 
-`courier` provides Python clients for working with remote services used to
+`praeco` provides Python clients for working with remote services used to
 publish, upload, query, and manage research and semantic assets.
 
 The main user-facing API is built around service clients:
@@ -16,7 +16,7 @@ The main user-facing API is built around service clients:
 users may also use it directly when they need low-level access to an HTTP API or
 want to prototype support for a new service.
 
-`courier` is not a workflow engine, scheduler, triple store, or archival backend.
+`praeco` is not a workflow engine, scheduler, triple store, or archival backend.
 It is a client layer for talking to those services through explicit Python APIs.
 
 ## Overview
@@ -40,16 +40,16 @@ developing a new service adapter.
 
 ## Installation
 
-`courier` supports Python 3.11 to 3.13. Development in this repository currently
+`praeco` supports Python 3.11 to 3.13. Development in this repository currently
 targets Python 3.12.
 
 For local use or development:
 
 ```bash
-git clone https://github.com/pyiron/courier.git
-cd courier
-conda create -n courier python=3.12
-conda activate courier
+git clone https://github.com/pyiron/praeco.git
+cd praeco
+conda create -n praeco python=3.12
+conda activate praeco
 pip install -e .
 ```
 
@@ -62,9 +62,9 @@ path is an editable install from the repository.
 
 Service clients are the primary API for normal use. They subclass or build on
 `HttpClient`, then attach small resource objects for service-specific behavior.
-Generic transport code stays in `courier/http_client.py` and
-`courier/transport/`; service-specific routes, models, and error handling live
-under `courier/services/<service>/`.
+Generic transport code stays in `praeco/http_client.py` and
+`praeco/transport/`; service-specific routes, models, and error handling live
+under `praeco/services/<service>/`.
 
 ### OntodockerClient
 
@@ -76,7 +76,7 @@ endpoint discovery, and SPARQL queries.
 An `OntodockerClient` exposes three resource objects:
 
 ```python
-from courier import OntodockerClient
+from praeco import OntodockerClient
 
 client = OntodockerClient("ontodocker.example.org", token="your-token")
 
@@ -108,7 +108,7 @@ Create a client:
 ```python
 import os
 
-from courier import OntodockerClient
+from praeco import OntodockerClient
 
 client = OntodockerClient(
     address=os.environ["ONTODOCKER_ADDRESS"],
@@ -129,13 +129,13 @@ Create a disposable dataset, upload Turtle, and fetch it again:
 ```python
 from pathlib import Path
 
-dataset = "courier_demo"
+dataset = "praeco_demo"
 turtle_path = Path("demo.ttl")
 turtle_path.write_text(
     """
 @prefix ex: <https://example.org/> .
 
-ex:sample ex:label "Courier demo sample" .
+ex:sample ex:label "Praeco demo sample" .
 """.strip()
     + "\n",
     encoding="utf-8",
@@ -192,7 +192,7 @@ usage, add it as a method on an Ontodocker resource class instead of duplicating
 URL construction in notebooks or scripts.
 
 See the
-[OntodockerClient notebook](https://github.com/pyiron/courier/blob/main/notebooks/OntodockerClient.ipynb)
+[OntodockerClient notebook](https://github.com/pyiron/praeco/blob/main/notebooks/OntodockerClient.ipynb)
 for a runnable demo and more detailed usage.
 
 ### DataportalClient
@@ -207,7 +207,7 @@ compatible address to be supplied explicitly.
 A `DataportalClient` exposes four resource objects:
 
 ```python
-from courier import DataportalClient
+from praeco import DataportalClient
 
 client = DataportalClient(api_token="your-token")
 
@@ -217,7 +217,7 @@ client.rdf
 client.sparql
 ```
 
-The client builds on courier's shared HTTP and CKAN transport infrastructure.
+The client builds on praeco's shared HTTP and CKAN transport infrastructure.
 The resource objects provide typed dataset and asset operations, DCAT RDF
 retrieval, and discovery and querying of dataset-associated SPARQL endpoints.
 
@@ -234,7 +234,7 @@ Create a client:
 ```python
 import os
 
-from courier import DataportalClient
+from praeco import DataportalClient
 
 client = DataportalClient(api_token=os.environ["DATAPORTAL_TOKEN"])
 ```
@@ -244,18 +244,18 @@ Service-independent publication fields are modeled with
 Dataportal-specific fields before creating a dataset:
 
 ```python
-from courier import Person, PublicationMetadata
-from courier.services.dataportal import DataportalMetadata
+from praeco import Person, PublicationMetadata
+from praeco.services.dataportal import DataportalMetadata
 
 publication = PublicationMetadata(
-    title="courier Dataportal example",
-    description="Example dataset created with courier.",
+    title="praeco Dataportal example",
+    description="Example dataset created with praeco.",
     creators=[Person(name="Example Author")],
-    keywords=["courier", "dataportal"],
+    keywords=["praeco", "dataportal"],
 )
 metadata = DataportalMetadata(
     metadata=publication,
-    name="courier-dataportal-example",
+    name="praeco-dataportal-example",
     owner_org="organization-id",
     private=True,
 )
@@ -295,7 +295,7 @@ the selected organization. Use disposable private datasets when validating
 write workflows against the live deployment, and clean them up afterwards.
 
 See the
-[DataportalClient notebook](https://github.com/pyiron/courier/blob/main/notebooks/DataportalClient.ipynb)
+[DataportalClient notebook](https://github.com/pyiron/praeco/blob/main/notebooks/DataportalClient.ipynb)
 for a complete live workflow covering organization discovery, metadata,
 datasets, RDF assets, Fuseki indexing, SPARQL querying, and cleanup.
 
@@ -309,7 +309,7 @@ file uploads, metadata authoring, license lookup, and publication actions.
 A `ZenodoClient` exposes three resource objects:
 
 ```python
-from courier import ZenodoClient
+from praeco import ZenodoClient
 
 client = ZenodoClient(sandbox=True, token="your-sandbox-token")
 
@@ -350,14 +350,14 @@ Create a client and a small artifact:
 import os
 from pathlib import Path
 
-from courier import Person, PublicationMetadata, ZenodoClient
-from courier.services.zenodo import Creator, ZenodoMetadata
+from praeco import Person, PublicationMetadata, ZenodoClient
+from praeco.services.zenodo import Creator, ZenodoMetadata
 
 client = ZenodoClient(sandbox=True, token=os.environ["ZENODO_SANDBOX_TOKEN"])
 
 artifact = Path("demo_artifact.txt")
 artifact.write_text(
-    "Hello from courier's Zenodo sandbox demo.\n",
+    "Hello from praeco's Zenodo sandbox demo.\n",
     encoding="utf-8",
 )
 ```
@@ -367,8 +367,8 @@ adapter:
 
 ```python
 publication = PublicationMetadata(
-    title="courier Zenodo sandbox demo",
-    description="Small demonstration upload created with courier.",
+    title="praeco Zenodo sandbox demo",
+    description="Small demonstration upload created with praeco.",
     creators=[
         Person(
             family_name="Doe",
@@ -376,7 +376,7 @@ publication = PublicationMetadata(
             affiliation="Example Institute",
         )
     ],
-    keywords=["courier", "zenodo", "sandbox"],
+    keywords=["praeco", "zenodo", "sandbox"],
     license="cc-by-4.0",
     version="0.1.0",
 )
@@ -392,8 +392,8 @@ The deprecated direct style still works temporarily for migration:
 
 ```python
 metadata = ZenodoMetadata.software()
-metadata.title = "courier Zenodo sandbox demo"
-metadata.description = "Small demonstration upload created with courier."
+metadata.title = "praeco Zenodo sandbox demo"
+metadata.description = "Small demonstration upload created with praeco."
 metadata.license = "cc-by-4.0"
 metadata.creators.append(
     Creator(
@@ -432,7 +432,7 @@ citable scholarly identifier when the record is published.
 
 #### Metadata
 
-`PublicationMetadata` is courier's service-independent authoring model for
+`PublicationMetadata` is praeco's service-independent authoring model for
 publication fields such as title, description, creators, contributors, related
 identifiers, keywords, license, DOI, version, language, and publication date.
 
@@ -484,7 +484,7 @@ validation remain explicit.
 For Zenodo fields that are documented but not yet modeled by `ZenodoMetadata`,
 pass a raw mapping. Raw mappings are wrapped as `{"metadata": ...}` by
 `client.depositions.create()` and `client.depositions.set_metadata()`, but they
-do not receive courier's local metadata validation:
+do not receive praeco's local metadata validation:
 
 ```python
 raw_metadata = metadata.to_api_dict()
@@ -497,7 +497,7 @@ draft = client.depositions.set_metadata(draft, raw_metadata)
 
 Server responses use `DepositionInfo`. Its `metadata` field remains a raw
 dictionary because Zenodo may return normalized values or fields outside
-courier's authoring model.
+praeco's authoring model.
 
 #### Sandbox vs Production
 
@@ -521,10 +521,10 @@ Useful token scopes:
 Zenodo API failures raise `ZenodoApiError` or a more specific subclass such as
 `ZenodoValidationError`, `ZenodoAuthenticationError`, `ZenodoPermissionError`,
 or `ZenodoNotFoundError`. Local metadata and input validation failures use
-`courier.exceptions.ValidationError`.
+`praeco.exceptions.ValidationError`.
 
 See the
-[ZenodoClient notebook](https://github.com/pyiron/courier/blob/main/notebooks/ZenodoClient.ipynb)
+[ZenodoClient notebook](https://github.com/pyiron/praeco/blob/main/notebooks/ZenodoClient.ipynb)
 for a sandbox demo and more detailed usage.
 
 ## Protocol Clients
@@ -546,7 +546,7 @@ service clients.
 - passing timeout and TLS verification settings to `requests`
 - allowing an externally managed `requests.Session`
 - exposing helpers for common text and JSON request patterns
-- raising consistent courier HTTP errors
+- raising consistent praeco HTTP errors
 
 Developers adding a new HTTP-based service client should usually put domain
 methods on small resource classes and let the service client inherit from or
@@ -557,7 +557,7 @@ compose `HttpClient`.
 Create a client:
 
 ```python
-from courier import HttpClient
+from praeco import HttpClient
 
 client = HttpClient("api.example.org", token="initial-token")
 client.base_url
@@ -613,24 +613,24 @@ Use `HttpClient` directly when:
 - the API is small enough that a full service client would not yet pay off
 
 Once route construction, response parsing, or workflow logic starts repeating,
-move that behavior into a service-specific client under `courier/services/`.
+move that behavior into a service-specific client under `praeco/services/`.
 
 See the
-[HttpClient notebook](https://github.com/pyiron/courier/blob/main/notebooks/HttpClient.ipynb)
+[HttpClient notebook](https://github.com/pyiron/praeco/blob/main/notebooks/HttpClient.ipynb)
 for a runnable demonstration of the transport API.
 
 ## Developer Guide
 
 The repository is organized by responsibility:
 
-- `courier/http_client.py` contains the public reusable HTTP client.
-- `courier/transport/` contains generic transport helpers for authentication,
+- `praeco/http_client.py` contains the public reusable HTTP client.
+- `praeco/transport/` contains generic transport helpers for authentication,
   session creation, URL normalization/composition, and response handling.
-- `courier/services/ontodocker/` contains Ontodocker routes, resources, models,
+- `praeco/services/ontodocker/` contains Ontodocker routes, resources, models,
   and compatibility helpers.
-- `courier/services/dataportal/` contains Dataportal datasets, assets, metadata,
+- `praeco/services/dataportal/` contains Dataportal datasets, assets, metadata,
   DCAT RDF, SPARQL, and CKAN-backed models.
-- `courier/services/zenodo/` contains Zenodo routes, resources, metadata
+- `praeco/services/zenodo/` contains Zenodo routes, resources, metadata
   authoring objects, response models, and Zenodo-specific errors.
 - `tests/unit/` contains focused behavior tests using fake sessions and
   responses where practical.

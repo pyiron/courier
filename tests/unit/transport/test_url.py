@@ -1,7 +1,7 @@
 import unittest
 
-from courier.exceptions import InvalidAddressError, ValidationError
-from courier.transport.url import join_url, normalize_base_url, quote_path_segment
+from praeco.exceptions import InvalidAddressError, ValidationError
+from praeco.transport.url import join_url, normalize_base_url, quote_path_segment
 
 
 class TestNormalizeBaseUrl(unittest.TestCase):

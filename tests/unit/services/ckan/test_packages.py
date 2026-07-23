@@ -1,9 +1,9 @@
 import unittest
 from typing import Any, cast
 
-from courier.exceptions import ValidationError
-from courier.services.ckan import CkanClient
-from courier.services.ckan.models import CkanPackageInfo
+from praeco.exceptions import ValidationError
+from praeco.services.ckan import CkanClient
+from praeco.services.ckan.models import CkanPackageInfo
 
 from ._helpers import FakeResponse, FakeSession
 

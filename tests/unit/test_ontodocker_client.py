@@ -7,9 +7,9 @@ from unittest import mock
 import pandas as pd
 import rdflib
 
-from courier.exceptions import ValidationError
-from courier.services.ontodocker import OntodockerClient
-from courier.services.ontodocker.models import EndpointInfo
+from praeco.exceptions import ValidationError
+from praeco.services.ontodocker import OntodockerClient
+from praeco.services.ontodocker.models import EndpointInfo
 
 
 class _FakeRequest:

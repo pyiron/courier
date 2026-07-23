@@ -2,8 +2,8 @@ import unittest
 
 import requests
 
-from courier import HttpClient
-from courier.exceptions import HttpError
+from praeco import HttpClient
+from praeco.exceptions import HttpError
 
 
 class _FakeRequest:

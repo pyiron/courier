@@ -2,9 +2,9 @@ import unittest
 import warnings
 from datetime import date
 
-import courier.metadata as common_metadata
-from courier.exceptions import ValidationError
-from courier.services.zenodo import (
+import praeco.metadata as common_metadata
+from praeco.exceptions import ValidationError
+from praeco.services.zenodo import (
     CommunityRef,
     Contributor,
     Creator,
@@ -12,7 +12,7 @@ from courier.services.zenodo import (
     RelatedIdentifier,
     ZenodoMetadata,
 )
-from courier.services.zenodo.metadata import _add_if_present, _person_api_name
+from praeco.services.zenodo.metadata import _add_if_present, _person_api_name
 
 _LEGACY_METADATA_WARNING = (
     "Setting publication metadata fields directly on ZenodoMetadata is deprecated.*"
@@ -23,7 +23,7 @@ def _valid_metadata(**overrides):
     values = {
         "upload_type": "software",
         "publication_date": "2026-04-21",
-        "title": "courier",
+        "title": "praeco",
         "creators": [Creator(name="Doe, Jane")],
         "description": "Python client.",
         "access_right": "open",
@@ -35,7 +35,7 @@ def _valid_metadata(**overrides):
 
 def _valid_publication_metadata(**overrides):
     values = {
-        "title": "courier",
+        "title": "praeco",
         "publication_date": "2026-04-21",
         "description": "Python client.",
         "creators": [common_metadata.Person(family_name="Doe", given_names="Jane")],
@@ -58,7 +58,7 @@ class TestZenodoMetadata(unittest.TestCase):
 
     def test_software_metadata_serializes_to_zenodo_payload(self):
         md = ZenodoMetadata.software()
-        md.title = "courier"
+        md.title = "praeco"
         md.publication_date = date(2026, 4, 21)
         md.description = "Python client."
         md.license = "Apache-2.0"
@@ -71,7 +71,7 @@ class TestZenodoMetadata(unittest.TestCase):
                 "metadata": {
                     "upload_type": "software",
                     "publication_date": "2026-04-21",
-                    "title": "courier",
+                    "title": "praeco",
                     "creators": [{"name": "Doe, Jane"}],
                     "description": "Python client.",
                     "access_right": "open",
@@ -150,7 +150,7 @@ class TestZenodoMetadata(unittest.TestCase):
                 "metadata": {
                     "upload_type": "software",
                     "publication_date": "2026-04-21",
-                    "title": "courier",
+                    "title": "praeco",
                     "creators": [
                         {
                             "name": "Doe, Jane",
@@ -198,7 +198,7 @@ class TestZenodoMetadata(unittest.TestCase):
             if issubclass(warning.category, DeprecationWarning)
         ]
         self.assertEqual(deprecations, [])
-        self.assertEqual(payload["metadata"]["title"], "courier")
+        self.assertEqual(payload["metadata"]["title"], "praeco")
 
     def test_legacy_common_metadata_serialization_warns(self):
         md = _valid_metadata()
@@ -206,7 +206,7 @@ class TestZenodoMetadata(unittest.TestCase):
         with self.assertWarnsRegex(DeprecationWarning, "PublicationMetadata"):
             payload = md.to_api_dict()
 
-        self.assertEqual(payload["title"], "courier")
+        self.assertEqual(payload["title"], "praeco")
 
     def test_legacy_common_metadata_helper_methods_warn(self):
         md = ZenodoMetadata.dataset()

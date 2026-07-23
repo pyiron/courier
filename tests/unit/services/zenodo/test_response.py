@@ -2,14 +2,14 @@ import json
 import unittest
 from typing import Any, cast
 
-from courier.services.zenodo import (
+from praeco.services.zenodo import (
     ZenodoApiError,
     ZenodoAuthenticationError,
     ZenodoNotFoundError,
     ZenodoPermissionError,
     ZenodoValidationError,
 )
-from courier.services.zenodo._response import read_zenodo_json, read_zenodo_text
+from praeco.services.zenodo._response import read_zenodo_json, read_zenodo_text
 
 from ._helpers import FakeRequest, FakeResponse
 

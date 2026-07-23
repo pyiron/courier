@@ -1,9 +1,9 @@
 import unittest
 from typing import Any, cast
 
-from courier.exceptions import ValidationError
-from courier.services.ckan.models import CkanPackageInfo
-from courier.services.dataportal import DataportalClient, DataportalDatasetInfo
+from praeco.exceptions import ValidationError
+from praeco.services.ckan.models import CkanPackageInfo
+from praeco.services.dataportal import DataportalClient, DataportalDatasetInfo
 
 from ._helpers import FakeResponse, FakeSession
 

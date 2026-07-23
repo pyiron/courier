@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Make a suggestion for a new feature or a change to courier
+about: Make a suggestion for a new feature or a change to praeco
 title: ''
 labels: enhancement
 assignees: ''
@@ -13,7 +13,7 @@ assignees: ''
 
 **Detailed Description**
 
-<!--Please explain how you would like to see courier enhanced, what feature(s) you are looking for, what specific problems this will solve.-->
+<!--Please explain how you would like to see praeco enhanced, what feature(s) you are looking for, what specific problems this will solve.-->
 
 **Further Information, Files, and Links**
 

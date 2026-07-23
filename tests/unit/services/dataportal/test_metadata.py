@@ -3,15 +3,15 @@ import unittest
 from datetime import datetime
 from typing import Any, cast
 
-from courier.exceptions import ValidationError
-from courier.metadata import (
+from praeco.exceptions import ValidationError
+from praeco.metadata import (
     Contributor,
     Person,
     PublicationMetadata,
     RelatedIdentifier,
 )
-from courier.services.dataportal import DataportalMetadata
-from courier.services.dataportal.metadata import _orcid_uri, _person_name
+from praeco.services.dataportal import DataportalMetadata
+from praeco.services.dataportal.metadata import _orcid_uri, _person_name
 
 
 def publication_metadata(**overrides: Any) -> PublicationMetadata:

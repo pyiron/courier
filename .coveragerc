@@ -1,5 +1,5 @@
 # .coveragerc to control coverage.py
 [run]
-source = courier
-omit = courier/_version.py
+source = praeco
+omit = praeco/_version.py
 concurrency = multiprocessing

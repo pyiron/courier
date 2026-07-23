@@ -5,9 +5,9 @@ from unittest import mock
 import pandas as pd
 import pandas.testing as pdt
 
-from courier.exceptions import ValidationError
-from courier.services.ckan.models import CkanPackageInfo, CkanResourceInfo
-from courier.services.dataportal import (
+from praeco.exceptions import ValidationError
+from praeco.services.ckan.models import CkanPackageInfo, CkanResourceInfo
+from praeco.services.dataportal import (
     DataportalAssetInfo,
     DataportalClient,
     DataportalDatasetInfo,
@@ -213,7 +213,7 @@ class TestSparqlQueries(unittest.TestCase):
         response.text = "external result"
 
         with mock.patch(
-            "courier.services.dataportal.sparql.requests.get",
+            "praeco.services.dataportal.sparql.requests.get",
             return_value=response,
         ) as get:
             text = client.sparql.query_raw(
