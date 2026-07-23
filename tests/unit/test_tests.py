@@ -11,6 +11,13 @@ from praeco.services.ontodocker import OntodockerClient
 from praeco.services.zenodo import ZenodoClient
 
 
+class TestImports(unittest.TestCase):
+    def test_imports_praeco_package(self):
+        module = importlib.import_module("praeco")
+
+        self.assertIs(module, praeco)
+
+
 class TestVersion(unittest.TestCase):
     def test_version(self):
         version = praeco.__version__
