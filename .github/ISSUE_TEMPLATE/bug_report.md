@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a bug report to help us eliminate issues and improve courier
+about: Create a bug report to help us eliminate issues and improve praeco
 title: ''
 labels: bug
 assignees: ''
